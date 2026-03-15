@@ -1,0 +1,45 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\DDMPr\\Desktop\\Studia_VI\\IP2\\Projekt\\Usos\\Usos\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Usos.bundle.scp.css",
+      "PackagePath": "staticwebassets\\Usos.avlbjwfrsg.bundle.scp.css"
+    },
+    {
+      "Id": "C:\\Users\\DDMPr\\Desktop\\Studia_VI\\IP2\\Projekt\\Usos\\Usos\\wwwroot\\app.css",
+      "PackagePath": "staticwebassets\\app.css"
+    },
+    {
+      "Id": "C:\\Users\\DDMPr\\Desktop\\Studia_VI\\IP2\\Projekt\\Usos\\Usos\\wwwroot\\bootstrap\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\Users\\DDMPr\\Desktop\\Studia_VI\\IP2\\Projekt\\Usos\\Usos\\wwwroot\\bootstrap\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\DDMPr\\Desktop\\Studia_VI\\IP2\\Projekt\\Usos\\Usos\\wwwroot\\favicon.png",
+      "PackagePath": "staticwebassets\\favicon.png"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.Usos.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.Usos.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.Usos.props",
+      "PackagePath": "build\\Usos.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.Usos.props",
+      "PackagePath": "buildMultiTargeting\\Usos.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.Usos.props",
+      "PackagePath": "buildTransitive\\Usos.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
