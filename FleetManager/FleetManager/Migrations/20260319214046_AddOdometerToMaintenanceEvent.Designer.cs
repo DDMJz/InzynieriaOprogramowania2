@@ -4,6 +4,7 @@ using FleetManager.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FleetManager.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319214046_AddOdometerToMaintenanceEvent")]
+    partial class AddOdometerToMaintenanceEvent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -120,29 +123,6 @@ namespace FleetManager.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MaintenanceTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            DefaultIntervalDays = 365,
-                            DefaultIntervalOdometer = 15000,
-                            Name = "Wymiana Oleju"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            DefaultIntervalDays = 365,
-                            DefaultIntervalOdometer = 0,
-                            Name = "Przegląd Rejestracyjny"
-                        },
-                        new
-                        {
-                            Id = 99,
-                            DefaultIntervalDays = 0,
-                            DefaultIntervalOdometer = 0,
-                            Name = "Inne"
-                        });
                 });
 
             modelBuilder.Entity("FleetManager.Models.Vehicle", b =>

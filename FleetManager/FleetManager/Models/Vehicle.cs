@@ -23,8 +23,11 @@ namespace FleetManager.Models
             : 0;
 
         //------------------modul przebiegow i eksploatacji bedzie zrealizowany odzielnej klasie z logika  
-        public double OdometerReading { get; set; }
-        
+        public int OdometerReading { get; set; }
+        //w tej chwili licznik jest aktualizowany jednynie podczas zdarzen tj fuelingEvent i maintenanceEvent
+        //docelowo nalezy zrobic dodatkowy endpoint dla http patch od urzedzenia iot w samochodzie?
+        //albo zastosowac protokol MQTT -  urzedzenie iot wysyla dane tym protokolem do brokera, a ASP.NET Core jest subskrybentem brokera
+        // urzadzenie iot nie ma narzutu bo MQTT jest duzo lzejszy niz http?
 
         // ----------modul GPS (wazne -typy nullable)
         public double? LastKnownLatitude { get; set; }
@@ -35,7 +38,7 @@ namespace FleetManager.Models
         [Timestamp]
         public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 
-        // ---relacje jeden-do-wielu
+        // ---listy dla relacji jeden-do-wielu
         public ICollection<FuelingEvent> FuelingEvents { get; set; } = new List<FuelingEvent>();
         public ICollection<MaintenanceEvent> MaintenanceEvents { get; set; } = new List<MaintenanceEvent>();
     }

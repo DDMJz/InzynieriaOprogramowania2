@@ -7,22 +7,25 @@ namespace FleetManager.Models
     {
         // klasa reprezentuje wizyte w warsztacie  
         public int Id { get; set; }
-        //Powiazanie z tabela vehicles:
-        //klucz obcy
-        public int VehicleId { get; set; }
 
-        // Właściwość nawigacyjna i referencja obiektowa dla Entity Framework
-        [ForeignKey(nameof(VehicleId))]
+        // klucz obcy 
+        [Required]
+        public int VehicleId { get; set; }
         public Vehicle? Vehicle { get; set; }
 
-        // powiazanie z tabela typow napraw: 
+
+        // klucz obcy 
+        [Required]
         public int MaintenanceTypeId { get; set; }
-        [ForeignKey(nameof(MaintenanceTypeId))]
         public MaintenanceType? MaintenanceType { get; set; }
 
+        [Required]
+        public int OdometerReading { get; set; }
 
         public string Description { get; set; } = string.Empty;
-        public double OdometerAtService { get; set; }
+
+        [Range(0.01, 100000.0)]
+        public double TotalCost { get; set; }
         public DateTime Date { get; set; } = DateTime.UtcNow;
 
         

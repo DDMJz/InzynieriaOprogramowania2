@@ -8,14 +8,17 @@ namespace FleetManager.Models
         public int Id { get; set; }
 
         // klucz obcy 
+        [Required]
         public int VehicleId { get; set; }
-
-        // referencja obiektowa dla Entity Framework
-        [ForeignKey(nameof(VehicleId))]
         public Vehicle? Vehicle { get; set; }
 
-        
+        [Required]
+        public int OdometerReading { get; set; }
+
+        [Range(0.01, 1000.0)]
         public double LitersAdded { get; set; }
+
+        [Range(0.01, 100000.0)]
         public double TotalCost { get; set; }
         public DateTime Date { get; set; } = DateTime.UtcNow;
 

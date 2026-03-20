@@ -10,10 +10,8 @@ namespace FleetManager.Models
         [Required, MaxLength(100)]
         public string Name { get; set; } = string.Empty; // np. "Wymiana Oleju"
 
-        public double DefaultIntervalOdometer { get; set; } // np. 15000km
+        public int DefaultIntervalOdometer { get; set; } // np. 15000km
         public int DefaultIntervalDays { get; set; }      // np. 365
 
-        // relacja jeden-do-wielu
-        public ICollection<MaintenanceEvent> MaintenanceRecords { get; set; } = new List<MaintenanceEvent>();
     }
 }

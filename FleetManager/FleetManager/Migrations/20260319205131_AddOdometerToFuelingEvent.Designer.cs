@@ -4,6 +4,7 @@ using FleetManager.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FleetManager.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319205131_AddOdometerToFuelingEvent")]
+    partial class AddOdometerToFuelingEvent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,16 +78,13 @@ namespace FleetManager.Migrations
                     b.Property<int>("MaintenanceTypeId")
                         .HasColumnType("int");
 
-                    b.Property<int>("OdometerReading")
-                        .HasColumnType("int");
+                    b.Property<double>("OdometerAtService")
+                        .HasColumnType("double");
 
                     b.Property<DateTime>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp(6)");
-
-                    b.Property<double>("TotalCost")
-                        .HasColumnType("double");
 
                     b.Property<int>("VehicleId")
                         .HasColumnType("int");
@@ -109,8 +109,8 @@ namespace FleetManager.Migrations
                     b.Property<int>("DefaultIntervalDays")
                         .HasColumnType("int");
 
-                    b.Property<int>("DefaultIntervalOdometer")
-                        .HasColumnType("int");
+                    b.Property<double>("DefaultIntervalOdometer")
+                        .HasColumnType("double");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -120,29 +120,6 @@ namespace FleetManager.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MaintenanceTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            DefaultIntervalDays = 365,
-                            DefaultIntervalOdometer = 15000,
-                            Name = "Wymiana Oleju"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            DefaultIntervalDays = 365,
-                            DefaultIntervalOdometer = 0,
-                            Name = "Przegląd Rejestracyjny"
-                        },
-                        new
-                        {
-                            Id = 99,
-                            DefaultIntervalDays = 0,
-                            DefaultIntervalOdometer = 0,
-                            Name = "Inne"
-                        });
                 });
 
             modelBuilder.Entity("FleetManager.Models.Vehicle", b =>
@@ -184,8 +161,8 @@ namespace FleetManager.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("OdometerReading")
-                        .HasColumnType("int");
+                    b.Property<double>("OdometerReading")
+                        .HasColumnType("double");
 
                     b.Property<DateTime>("RowVersion")
                         .IsConcurrencyToken()
