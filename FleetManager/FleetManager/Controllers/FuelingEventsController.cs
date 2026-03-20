@@ -6,16 +6,19 @@ using FleetManager.DTOs;
 
 namespace FleetManager.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public class FuelingEventsController : ControllerBase
+// Kontroler REST: zarządzanie zdarzeniami tankowania
+[Route("api/[controller]")]
+[ApiController]
+[ProducesResponseType(StatusCodes.Status400BadRequest)]
+public class FuelingEventsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly Services.IFuelingService _fuelingService;
 
-        public FuelingEventsController(AppDbContext context)
+        public FuelingEventsController(AppDbContext context, Services.IFuelingService fuelingService)
         {
             _context = context;
+            _fuelingService = fuelingService;
         }
 
         // GET: api/FuelingEvents/Vehicle/{vehicleId}
@@ -63,7 +66,7 @@ namespace FleetManager.Controllers
             {
                 return NotFound();
             }
-            
+            // zwraca DTO ze zdarzeniem tankowania
             return Ok(dto);
         }
 
@@ -72,43 +75,21 @@ namespace FleetManager.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(FuelingEventCreatedResponseDto))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        // Deleguje logikę tworzenia tankowania do serwisu biznesowego
         public async Task<IActionResult> PostFuelingEvent(FuelingEventCreateDto dto, CancellationToken ct)
         {
-            var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == dto.VehicleId, ct);
-
-            if (vehicle == null)
+            var result = await _fuelingService.CreateFuelingAsync(dto, ct);
+            if (!result.Success)
             {
-                return NotFound(new { message = $"Pojazd o ID {dto.VehicleId} nie istnieje." });
-            }
-
-            if (dto.OdometerReading < vehicle.OdometerReading)
-            {
-                return BadRequest(new
+                if (result.Error != null && result.Error.StartsWith("NotFound:"))
                 {
-                    message = "Blad licznika.",
-                    details = $"Podany przebieg ({dto.OdometerReading}) jest mniejszy niz aktualny przebieg pojazdu ({vehicle.OdometerReading})."
-                });
+                    return NotFound(new { message = result.Error.Substring("NotFound:".Length) });
+                }
+                return BadRequest(new { message = result.Error });
             }
 
-            var fuelingEvent = new FuelingEvent
-            {
-                VehicleId = dto.VehicleId,
-                OdometerReading = dto.OdometerReading,
-                LitersAdded = dto.LitersAdded,
-                TotalCost = dto.TotalCost,
-                Date = dto.Date
-            };
-
-            // Aktualizacja stanu pojazdu (Synchronizacja danych)
-            vehicle.OdometerReading = dto.OdometerReading;
-            vehicle.CurrentFuelLevel += dto.LitersAdded;
-
-            _context.FuelingEvents.Add(fuelingEvent);
-
-            await _context.SaveChangesAsync(ct);
-
-            var responseDto = new FuelingEventCreatedResponseDto { Id = fuelingEvent.Id };
-            return CreatedAtAction(nameof(GetFuelingEvent), new { id = fuelingEvent.Id }, responseDto);
+            var responseDto = new FuelingEventCreatedResponseDto { Id = result.Event!.Id };
+            return CreatedAtAction(nameof(GetFuelingEvent), new { id = result.Event.Id }, responseDto);
         }
 
         // DELETE: api/FuelingEvents/{id}
@@ -116,18 +97,18 @@ namespace FleetManager.Controllers
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        // Deleguje usuwanie tankowania (serwis odwraca efekty zdarzenia)
         public async Task<IActionResult> DeleteFuelingEvent(int id, CancellationToken ct)
         {
-            var fuelingEvent = await _context.FuelingEvents.FindAsync(new object[] { id }, ct);
-
-            if (fuelingEvent == null)
+            var result = await _fuelingService.DeleteFuelingAsync(id, ct);
+            if (!result.Success)
             {
-                return NotFound();
+                if (result.Error != null && result.Error.StartsWith("NotFound:"))
+                {
+                    return NotFound(new { message = result.Error.Substring("NotFound:".Length) });
+                }
+                return BadRequest(new { message = result.Error });
             }
-
-            _context.FuelingEvents.Remove(fuelingEvent);
-
-            await _context.SaveChangesAsync(ct);
 
             return NoContent();
         }

@@ -1,4 +1,3 @@
-
 using Microsoft.EntityFrameworkCore;
 
 namespace FleetManager
@@ -23,6 +22,11 @@ namespace FleetManager
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+
+            // business logic services
+            builder.Services.AddScoped<FleetManager.Services.IFuelingService, FleetManager.Services.FuelingService>();
+            builder.Services.AddScoped<FleetManager.Services.IMaintenanceService, FleetManager.Services.MaintenanceService>();
+            builder.Services.AddScoped<FleetManager.Services.ITelemetryService, FleetManager.Services.TelemetryService>();
 
             var app = builder.Build();
 
