@@ -31,6 +31,7 @@ namespace FleetManager.Controllers
                     LicensePlate = v.LicensePlate,
                     Brand = v.Brand,
                     Model = v.Model,
+                    Year = v.Year,
                     OdometerReading = v.OdometerReading,
                     CurrentFuelLevel = v.CurrentFuelLevel,
                     RowVersion = v.RowVersion //potrzebne dla put 
