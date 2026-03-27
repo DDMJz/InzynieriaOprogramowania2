@@ -14,6 +14,7 @@ namespace FleetManager.Data
         public DbSet<FuelingEvent> FuelingEvents { get; set; }
         public DbSet<MaintenanceEvent> MaintenanceEvents { get; set; }
         public DbSet<MaintenanceType> MaintenanceTypes { get; set; }
+        public DbSet<TelemetryLog> TelemetryLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -45,6 +46,12 @@ namespace FleetManager.Data
                 .WithMany() // Typ nie ma listy napraw (realcja jeden do wielu ale jednokierunkowa)
                 .HasForeignKey(m => m.MaintenanceTypeId)
                 .OnDelete(DeleteBehavior.Restrict); //niedomyslen ustawienie - ma chronic historie napraw przy usunieciu typu naprawy
+
+            modelBuilder.Entity<TelemetryLog>()
+                .HasOne(t => t.Vehicle)
+                .WithMany(v => v.TelemetryLogs) // vehicle ma liste zdarzen telemetrycznych
+                .HasForeignKey(t => t.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
             
             //seedowanie domyslnych typow napraw do bazy: 
             modelBuilder.Entity<MaintenanceType>().HasData(

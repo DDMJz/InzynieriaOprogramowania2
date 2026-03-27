@@ -41,5 +41,7 @@ namespace FleetManager.Models
         // ---listy dla relacji jeden-do-wielu
         public ICollection<FuelingEvent> FuelingEvents { get; set; } = new List<FuelingEvent>();
         public ICollection<MaintenanceEvent> MaintenanceEvents { get; set; } = new List<MaintenanceEvent>();
+        // logi telemetryczne GPS / IoT
+        public ICollection<TelemetryLog> TelemetryLogs { get; set; } = new List<TelemetryLog>();
     }
 }
