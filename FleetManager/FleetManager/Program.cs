@@ -26,6 +26,7 @@ namespace FleetManager
             // business logic services
             builder.Services.AddScoped<FleetManager.Services.IFuelingService, FleetManager.Services.FuelingService>();
             builder.Services.AddScoped<FleetManager.Services.IMaintenanceService, FleetManager.Services.MaintenanceService>();
+            //w tej chwili nie uzywane (logika nie jest na to gotowa):
             builder.Services.AddScoped<FleetManager.Services.ITelemetryService, FleetManager.Services.TelemetryService>();
 
             var app = builder.Build();

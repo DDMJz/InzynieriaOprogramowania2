@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FleetManager.Services
 {
     // Implementacja serwisu eksploatacji: reguły tworzenia/usuwania zdarzeń serwisowych
+    //po wprowadzeniu obslugi TelemetryLog nalezy zmienic logike uaktualniania stanu licznika 
     public class MaintenanceService : IMaintenanceService
     {
         private readonly AppDbContext _context;

@@ -14,6 +14,8 @@ namespace FleetManager.Data
         public DbSet<FuelingEvent> FuelingEvents { get; set; }
         public DbSet<MaintenanceEvent> MaintenanceEvents { get; set; }
         public DbSet<MaintenanceType> MaintenanceTypes { get; set; }
+
+        // na tym etapie nie uzywane:
         public DbSet<TelemetryLog> TelemetryLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

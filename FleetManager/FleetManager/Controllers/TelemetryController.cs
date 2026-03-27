@@ -5,8 +5,12 @@ using FleetManager.DTOs;
 using FleetManager.Models;
 using FleetManager.Services;
 
+
+
 namespace FleetManager.Controllers
 {
+        //W tej chwili nie uzywany 
+/*
     [Route("api/[controller]")]
     [ApiController]
     public class TelemetryController : ControllerBase
@@ -67,7 +71,6 @@ namespace FleetManager.Controllers
 
             return Ok(dtos);
         }
-
         // GET: api/Telemetry/Vehicle/{vehicleId}
         [HttpGet("Vehicle/{vehicleId}")]
         public async Task<ActionResult<IEnumerable<TelemetryLogReadDto>>> GetVehicleTelemetry(int vehicleId, CancellationToken ct)
@@ -114,4 +117,5 @@ namespace FleetManager.Controllers
             return Ok(dto);
         }
     }
+*/
 }

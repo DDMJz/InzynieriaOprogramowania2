@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FleetManager.Services
 {
     // Implementacja serwisu tankowania: zawiera reguły biznesowe dotyczące tworzenia i usuwania tankowań
+    //po wprowadzeniu obslugi TelemetryLog nalezy zmienic logike uaktualniania stanu licznika i poziomu paliwa
     public class FuelingService : IFuelingService
     {
         private readonly AppDbContext _context;
