@@ -91,6 +91,7 @@ namespace FleetManager.Controllers
         }
 
         // Edycja pojazdu
+        // w razie konfliktu wspolbieznosci zwraca aktualny stan rekordu w bazie 
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)] 
         [ProducesResponseType(StatusCodes.Status404NotFound)] 
@@ -105,7 +106,8 @@ namespace FleetManager.Controllers
             {
                 return NotFound(new { message = $"Pojazd o ID {id} nie istnieje." });
             }
-
+            //dto.RowVersion przysyla klient - ma je z poprzedniego zapytania get
+            //tu nadpisywane do obrazu rekordu w pamieci
             _context.Entry(vehicleInDb).OriginalValues["RowVersion"] = dto.RowVersion;
 
             vehicleInDb.LicensePlate = dto.LicensePlate;
@@ -115,6 +117,7 @@ namespace FleetManager.Controllers
 
             try
             {
+                //jezeli RowVersion w miedzyczasie sie zmienilo w bazie (modyfikacja rekordu) tu wyrzucony zostanie wyjatek
                 await _context.SaveChangesAsync(ct);
             }
             catch (DbUpdateConcurrencyException ex)
@@ -125,8 +128,10 @@ namespace FleetManager.Controllers
 
                 if (databaseValues == null)
                 {
+                    //jezeli rekord w bazie zostal w miedzyczasie skasowany
                     return NotFound(new { message = "Pojazd został usunięty przez innego użytkownika." });
                 }
+                //pobranie aktualnej wersji rekordu z bazy
                 await entry.ReloadAsync(ct);
                 vehicleInDb = (Vehicle)entry.Entity;
 
@@ -138,7 +143,7 @@ namespace FleetManager.Controllers
                     Year = vehicleInDb.Year,
                     RowVersion = vehicleInDb.RowVersion // aktualne
                 };
-
+                //zwraca aktualny stan rekordu w bazie jezeli w miedzyczasie sie zmienil
                 return Conflict(updatedDto);
             }
 
