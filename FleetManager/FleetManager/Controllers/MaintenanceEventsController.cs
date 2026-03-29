@@ -9,7 +9,6 @@ namespace FleetManager.Controllers
     // Kontroler REST: zarządzanie zdarzeniami serwisowymi (eksploatacja)
     [Route("api/[controller]")]
     [ApiController]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public class MaintenanceEventsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -74,10 +73,11 @@ namespace FleetManager.Controllers
         }
 
         // POST: api/MaintenanceEvents
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(MaintenanceEventCreatedResponseDto))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         // Deleguje tworzenie zdarzenia serwisowego do serwisu biznesowego
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]//to jest niestandardowe(niegodne z domyslna konwencja)
         public async Task<IActionResult> PostMaintenanceEvent(MaintenanceEventCreateDto dto, CancellationToken ct)
         {
             var result = await _maintenanceService.CreateMaintenanceAsync(dto, ct);
@@ -96,10 +96,8 @@ namespace FleetManager.Controllers
         }
 
         // DELETE: api/MaintenanceEvents/{id}
-        [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         // Deleguje usuwanie zdarzenia serwisowego (serwis cofa efekty na pojeździe)
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMaintenanceEvent(int id, CancellationToken ct)
         {
             var result = await _maintenanceService.DeleteMaintenanceAsync(id, ct);

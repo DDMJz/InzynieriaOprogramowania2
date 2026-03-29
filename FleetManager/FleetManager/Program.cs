@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
+
+[assembly: ApiConventionType(typeof(FleetManager.Conventions.FleetApiConventions))]
 
 namespace FleetManager
 {
@@ -6,6 +9,7 @@ namespace FleetManager
     {
         public static void Main(string[] args)
         {
+
             var builder = WebApplication.CreateBuilder(args);
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection"); //znajduje w pliku JSON w sekcji ConnectionStrig

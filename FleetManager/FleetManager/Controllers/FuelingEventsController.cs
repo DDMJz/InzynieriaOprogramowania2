@@ -9,7 +9,6 @@ namespace FleetManager.Controllers
 // Kontroler REST: zarządzanie zdarzeniami tankowania
 [Route("api/[controller]")]
 [ApiController]
-[ProducesResponseType(StatusCodes.Status400BadRequest)]
 public class FuelingEventsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -72,10 +71,11 @@ public class FuelingEventsController : ControllerBase
 
         // POST: api/FuelingEvents
         //dodanie nowego tankowania
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(FuelingEventCreatedResponseDto))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         // Deleguje logikę tworzenia tankowania do serwisu biznesowego
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]//to jest niestandardowe(niegodne z domyslna konwencja)
         public async Task<IActionResult> PostFuelingEvent(FuelingEventCreateDto dto, CancellationToken ct)
         {
             var result = await _fuelingService.CreateFuelingAsync(dto, ct);
@@ -94,10 +94,8 @@ public class FuelingEventsController : ControllerBase
 
         // DELETE: api/FuelingEvents/{id}
         //usuwanie tankowania
-        [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         // Deleguje usuwanie tankowania (serwis odwraca efekty zdarzenia)
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFuelingEvent(int id, CancellationToken ct)
         {
             var result = await _fuelingService.DeleteFuelingAsync(id, ct);

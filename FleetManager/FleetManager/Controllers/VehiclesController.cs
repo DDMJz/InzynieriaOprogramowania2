@@ -8,7 +8,6 @@ namespace FleetManager.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public class VehiclesController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -69,7 +68,6 @@ namespace FleetManager.Controllers
 
         // Dodawanie nowego pojazdu
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(VehicleCreatedResponseDto))]
         public async Task<IActionResult> PostVehicle(VehicleCreateDto dto, CancellationToken ct)
         {
             bool vinExists = await _context.Vehicles.AnyAsync(v => v.Vin == dto.Vin, ct);
@@ -96,6 +94,7 @@ namespace FleetManager.Controllers
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)] 
         [ProducesResponseType(StatusCodes.Status404NotFound)] 
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(VehicleUpdateDto))]
         public async Task<IActionResult> PutVehicle(int id, VehicleUpdateDto dto, CancellationToken ct)
         {
@@ -148,8 +147,6 @@ namespace FleetManager.Controllers
 
         //Usuwanie pojazdu po id
         [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteVehicle(int id, CancellationToken ct)
         {
             var vehicle = await _context.Vehicles.FindAsync(new object[] { id }, ct);
