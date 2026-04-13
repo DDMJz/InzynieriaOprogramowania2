@@ -42,7 +42,7 @@ namespace FleetManager.Services
                 VehicleId = dto.VehicleId,
                 OdometerReading = dto.OdometerReading,
                 LitersAdded = dto.LitersAdded,
-                TotalCost = dto.TotalCost,
+                Cost = dto.Cost,
                 Date = dto.Date
             };
 
@@ -107,6 +107,42 @@ namespace FleetManager.Services
             await _context.SaveChangesAsync(ct);
 
             return (true, null);
+        }
+
+        public async Task<FuelStatisticsDto?> GetFuelStatisticsAsync(int vehicleId, CancellationToken ct)
+        {
+            // walidacja istnienia samochodu
+            var vehicleExists = await _context.Vehicles.AnyAsync(v => v.Id == vehicleId, ct);
+            if (!vehicleExists) return null;
+
+            // pobranie tankowan
+            var fuelingEvents = await _context.FuelingEvents
+                .Where(f => f.VehicleId == vehicleId)
+                .OrderBy(f => f.OdometerReading)
+                .ToListAsync(ct);
+
+            var stats = new FuelStatisticsDto { VehicleId = vehicleId };
+
+            // jezeli mniej niż 2 tankowania, oddawane puste statystyki (brak dystansu)
+            if (fuelingEvents.Count < 2) return stats;
+
+            // obliczenia (wynik precyzyjny jedynie jezeli kazde tnakowanie jest do pelna)
+            var firstReading = fuelingEvents.First().OdometerReading;
+            var lastReading = fuelingEvents.Last().OdometerReading;
+
+            stats.TotalDistanceKm = lastReading - firstReading;
+
+            // pierwsze tankowanie pomijane przy sumowaniu paliwa
+            stats.TotalFuelLiters = Math.Round(fuelingEvents.Skip(1).Sum(f => f.LitersAdded), 2);
+            stats.TotalCost = Math.Round(fuelingEvents.Skip(1).Sum(f => f.Cost), 2);
+
+            // zabezpieczenie przed dzieleniem przez zero 
+            if (stats.TotalDistanceKm > 0)
+            {
+                stats.AverageConsumption = Math.Round((stats.TotalFuelLiters / stats.TotalDistanceKm) * 100, 2);
+            }
+
+            return stats;
         }
     }
 }

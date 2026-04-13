@@ -19,7 +19,7 @@ namespace FleetManager.Models
         public double LitersAdded { get; set; }
 
         [Range(0.01, 100000.0)]
-        public double TotalCost { get; set; }
+        public double Cost { get; set; }
         public DateTime Date { get; set; } = DateTime.UtcNow;
 
         // ----------------optymistyczna wspolbieznosc

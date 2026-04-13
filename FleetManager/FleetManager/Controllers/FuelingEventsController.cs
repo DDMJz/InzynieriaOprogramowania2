@@ -34,7 +34,7 @@ public class FuelingEventsController : ControllerBase
                     VehicleId = f.VehicleId,
                     OdometerReading = f.OdometerReading,
                     LitersAdded = f.LitersAdded,
-                    TotalCost = f.TotalCost,
+                    Cost = f.Cost,
                     Date = f.Date,
                     RowVersion = f.RowVersion
                 })
@@ -56,7 +56,7 @@ public class FuelingEventsController : ControllerBase
                     VehicleId = f.VehicleId, 
                     OdometerReading = f.OdometerReading,
                     LitersAdded = f.LitersAdded,
-                    TotalCost = f.TotalCost,
+                    Cost = f.Cost,
                     Date = f.Date
                 })
                 .FirstOrDefaultAsync(ct);

@@ -12,5 +12,7 @@ namespace FleetManager.Services
 
         // Usuwa zdarzenie tankowania i cofa jego efekty (poziom paliwa, przebieg)
         Task<(bool Success, string? Error)> DeleteFuelingAsync(int id, CancellationToken ct);
+        
+        Task<FuelStatisticsDto?> GetFuelStatisticsAsync(int vehicleId, CancellationToken ct);
     }
 }

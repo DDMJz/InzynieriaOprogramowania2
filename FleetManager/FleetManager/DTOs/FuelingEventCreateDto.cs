@@ -9,7 +9,7 @@ namespace FleetManager.DTOs
         [Required]
         public double LitersAdded { get; set; }
         [Required]
-        public double TotalCost { get; set; }
+        public double Cost { get; set; }
         [Required]
         public int OdometerReading { get; set; }
 

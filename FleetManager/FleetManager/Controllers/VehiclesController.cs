@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using FleetManager.Data;
-using FleetManager.Models;
+﻿using FleetManager.Data;
 using FleetManager.DTOs; //katalog z dto -data transfer object-sluzy do filtrowania zapytan
+using FleetManager.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FleetManager.Controllers
 {
@@ -11,11 +11,13 @@ namespace FleetManager.Controllers
     public class VehiclesController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly Services.IFuelingService _fuelingService;
 
         // Konstruktor: 
-        public VehiclesController(AppDbContext context)
+        public VehiclesController(AppDbContext context, Services.IFuelingService fuelingService)
         {
             _context = context;
+            _fuelingService = fuelingService;
         }
 
         // Pobieranie wszystkich pojazdów
@@ -68,7 +70,7 @@ namespace FleetManager.Controllers
 
         // Dodawanie nowego pojazdu
         [HttpPost]
-        public async Task<IActionResult> PostVehicle(VehicleCreateDto dto, CancellationToken ct)
+        public async Task<ActionResult<VehicleCreatedResponseDto>> PostVehicle(VehicleCreateDto dto, CancellationToken ct)
         {
             bool vinExists = await _context.Vehicles.AnyAsync(v => v.Vin == dto.Vin, ct);
 
@@ -164,6 +166,22 @@ namespace FleetManager.Controllers
             await _context.SaveChangesAsync(ct);
 
             return NoContent(); 
+        }
+
+        // pobieranie statystyk dot paliwa:
+        [HttpGet("{id}/FuelStatistics")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<FuelStatisticsDto>> GetFuelStatistics(int id, CancellationToken ct)
+        {
+            var stats = await _fuelingService.GetFuelStatisticsAsync(id, ct);
+
+            if (stats == null)
+            {
+                return NotFound(new { message = $"Pojazd o ID {id} nie istnieje w systemie." });
+            }
+
+            return Ok(stats);
         }
     }
 }
