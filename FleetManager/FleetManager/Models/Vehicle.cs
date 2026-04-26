@@ -12,25 +12,16 @@ namespace FleetManager.Models
         public int Year { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow; //wazne - niezaleznosc od czasu lokalnego
-        
-        
+
+        public VehicleStatus Status { get; set; } = VehicleStatus.Idle; //enum w tej samej przestrzeni nazw
+
         //------------------modul tankowania 
         public double FuelTankCapacity { get; set; }
-        public double CurrentFuelLevel { get; set; }
-        // Kalkulator procentowy (liczy C#, nie baza)
-        public double FuelLevelPercentage => FuelTankCapacity > 0
-            ? Math.Round((CurrentFuelLevel / FuelTankCapacity) * 100, 2)
-            : 0;
+        
 
         //------------------modul przebiegow i eksploatacji bedzie zrealizowany odzielnej klasie z logika  
         public int OdometerReading { get; set; }
-        //w tej chwili licznik jest aktualizowany jednynie podczas zdarzen fuelingEvent i maintenanceEvent
-        //docelowo beddzie to robil TelemetryLog
 
-        // ----------modul GPS (wazne -typy nullable)
-        public double? LastKnownLatitude { get; set; }
-        public double? LastKnownLongitude { get; set; }
-        public DateTime? LastGpsUpdate { get; set; }
 
         // ----------------optymistyczna wspolbieznosc
         [Timestamp]
@@ -39,7 +30,5 @@ namespace FleetManager.Models
         // ---listy dla relacji jeden-do-wielu
         public ICollection<FuelingEvent> FuelingEvents { get; set; } = new List<FuelingEvent>();
         public ICollection<MaintenanceEvent> MaintenanceEvents { get; set; } = new List<MaintenanceEvent>();
-        // logi telemetryczne GPS / IoT - w tej chwili nie uzywane
-        public ICollection<TelemetryLog> TelemetryLogs { get; set; } = new List<TelemetryLog>();
     }
 }

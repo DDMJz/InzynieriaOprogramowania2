@@ -7,7 +7,6 @@ using FleetManager.Common.Results;
 namespace FleetManager.Services
 {
     // Implementacja serwisu tankowania: zawiera reguły biznesowe dotyczące tworzenia i usuwania tankowań
-    //po wprowadzeniu obslugi TelemetryLog nalezy zmienic logike uaktualniania stanu licznika i poziomu paliwa
     public class FuelingService : IFuelingService
     {
         private readonly AppDbContext _context;
@@ -26,12 +25,6 @@ namespace FleetManager.Services
                 return Result<FuelingEvent>.NotFound($"Pojazd o ID {dto.VehicleId} nie istnieje.");
             }
 
-            // walidacja przebiegu
-            if (dto.OdometerReading < vehicle.OdometerReading)
-            {
-                return Result<FuelingEvent>.Validation($"Podany przebieg ({dto.OdometerReading}) jest mniejszy niz aktualny przebieg pojazdu ({vehicle.OdometerReading}).");
-            }
-
             // walidacja liczby litrów
             if (dto.LitersAdded <= 0)
             {
@@ -44,12 +37,14 @@ namespace FleetManager.Services
                 OdometerReading = dto.OdometerReading,
                 LitersAdded = dto.LitersAdded,
                 Cost = dto.Cost,
-                Date = dto.Date
+                Date = dto.Date,
             };
 
             // synchronizacja stanu pojazdu
-            vehicle.OdometerReading = dto.OdometerReading;
-            vehicle.CurrentFuelLevel += dto.LitersAdded;
+            if (dto.OdometerReading > vehicle.OdometerReading)
+            {
+                vehicle.OdometerReading = dto.OdometerReading;
+            }
 
             _context.FuelingEvents.Add(fuelingEvent);
 
@@ -65,49 +60,17 @@ namespace FleetManager.Services
             return Result<FuelingEvent>.Success(fuelingEvent);
         }
 
-        // Usuwa zdarzenie tankowania i cofa jego efekty na pojeździe
+        // Usuwa zdarzenie tankowania 
         public async Task<Result> DeleteFuelingAsync(int id, CancellationToken ct)
         {
-            var fuelingEvent = await _context.FuelingEvents
-                .Include(f => f.Vehicle)
-                .FirstOrDefaultAsync(f => f.Id == id, ct);
+            var fuelingEvent = await _context.FuelingEvents.FirstOrDefaultAsync(f => f.Id == id, ct);
             
             if (fuelingEvent == null)
             {
                 return Result.NotFound($"Zdarzenie tankowania o ID {id} nie istnieje.");
             }
 
-            // cofanie wpływu na poziom paliwa
-            var vehicle = fuelingEvent.Vehicle;
-            if (vehicle != null)
-            {
-                vehicle.CurrentFuelLevel -= fuelingEvent.LitersAdded;
-                if (vehicle.CurrentFuelLevel < 0) vehicle.CurrentFuelLevel = 0;
-
-                // odtworzenie przebiegu na podstawie ostatnich zdarzeń (tankowanie/serwis)
-                var lastEvent = await _context.FuelingEvents
-                    .Where(f => f.VehicleId == vehicle.Id && f.Id != id)
-                    .OrderByDescending(f => f.Date)
-                    .ThenByDescending(f => f.Id)
-                    .FirstOrDefaultAsync(ct);
-
-                var lastMaintenance = await _context.MaintenanceEvents
-                    .Where(m => m.VehicleId == vehicle.Id)
-                    .OrderByDescending(m => m.Date)
-                    .ThenByDescending(m => m.Id)
-                    .FirstOrDefaultAsync(ct);
-
-                int newOdometer = 0;
-                if (lastEvent != null || lastMaintenance != null)
-                {
-                    newOdometer = Math.Max(lastEvent?.OdometerReading ?? 0, lastMaintenance?.OdometerReading ?? 0);
-                }
-
-                vehicle.OdometerReading = newOdometer;
-            }
-
             _context.FuelingEvents.Remove(fuelingEvent);
-
             await _context.SaveChangesAsync(ct);
 
             return Result.Success();
@@ -130,7 +93,7 @@ namespace FleetManager.Services
             // jezeli mniej niż 2 tankowania, oddawane puste statystyki (brak dystansu)
             if (fuelingEvents.Count < 2) return stats;
 
-            // obliczenia (wynik precyzyjny jedynie jezeli kazde tnakowanie jest do pelna)
+            // obliczenia (zakladamy ze kazde tamkowanie jest do pelna)
             var firstReading = fuelingEvents.First().OdometerReading;
             var lastReading = fuelingEvents.Last().OdometerReading;
 

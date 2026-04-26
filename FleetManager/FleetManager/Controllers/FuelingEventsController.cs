@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FleetManager.Data;
-using FleetManager.Models;
 using FleetManager.DTOs;
 using FleetManager.Common.Results;
 
@@ -58,7 +57,8 @@ public class FuelingEventsController : ControllerBase
                     OdometerReading = f.OdometerReading,
                     LitersAdded = f.LitersAdded,
                     Cost = f.Cost,
-                    Date = f.Date
+                    Date = f.Date,
+                    RowVersion = f.RowVersion
                 })
                 .FirstOrDefaultAsync(ct);
 
@@ -97,7 +97,7 @@ public class FuelingEventsController : ControllerBase
 
         // DELETE: api/FuelingEvents/{id}
         //usuwanie tankowania
-        // Deleguje usuwanie tankowania (serwis odwraca efekty zdarzenia)
+        // Deleguje usuwanie tankowania do serwisu
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFuelingEvent(int id, CancellationToken ct)
         {
@@ -115,47 +115,5 @@ public class FuelingEventsController : ControllerBase
 
             return NoContent();
         }
-
-
-
     }
-}
-
-
-
-
-
-
-
-Przykladowy serwis
-public async Task<Result<Order>> GetOrderAsync(int id)
-{
-    var order = await _db.Orders.FindAsync(id);
-
-    if (order is null)
-        return Result<Order>.NotFound($"Order {id} not found.");
-
-    if (order.IsExpired)
-        return Result<Order>.Validation("Order has already expired.");
-
-    return Result<Order>.Success(order);
-}
-
-I kontroler:
-[HttpGet("{id}")]
-public async Task<IActionResult> GetOrder(int id)
-{
-    var result = await _orderService.GetOrderAsync(id);
-
-    if (!result.IsSuccess)
-    {
-        return result.ErrorType switch
-        {
-            ResultErrorType.NotFound => NotFound(result.Error),
-            ResultErrorType.Validation => BadRequest(result.Error),
-            _ => StatusCode(500)
-        };
-    }
-
-    return Ok(result.Value);
 }

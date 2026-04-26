@@ -12,12 +12,14 @@ namespace FleetManager.Controllers
     {
         private readonly AppDbContext _context;
         private readonly Services.IFuelingService _fuelingService;
+        private readonly ILogger<VehiclesController> _logger;
 
         // Konstruktor: 
-        public VehiclesController(AppDbContext context, Services.IFuelingService fuelingService)
+        public VehiclesController(AppDbContext context, Services.IFuelingService fuelingService, ILogger<VehiclesController> logger)
         {
             _context = context;
             _fuelingService = fuelingService;
+            _logger = logger;
         }
 
         // Pobieranie wszystkich pojazdów
@@ -34,7 +36,7 @@ namespace FleetManager.Controllers
                     Model = v.Model,
                     Year = v.Year,
                     OdometerReading = v.OdometerReading,
-                    CurrentFuelLevel = v.CurrentFuelLevel,
+                    Status = v.Status.ToString(),
                     RowVersion = v.RowVersion //potrzebne dla put 
                 })
                 .ToListAsync(ct);
@@ -55,7 +57,7 @@ namespace FleetManager.Controllers
                     Model = v.Model,
                     Year = v.Year,
                     OdometerReading = v.OdometerReading,
-                    CurrentFuelLevel = v.CurrentFuelLevel,
+                    Status = v.Status.ToString(),
                     RowVersion = v.RowVersion //potrzebne dla put
                 })
                 .FirstOrDefaultAsync(ct);
@@ -82,7 +84,8 @@ namespace FleetManager.Controllers
                 LicensePlate = dto.LicensePlate,
                 Brand = dto.Brand,
                 Model = dto.Model, 
-                OdometerReading = dto.OdometerReading
+                OdometerReading = dto.OdometerReading,
+                Status = VehicleStatus.Idle // stan domyslny
             };
             
             _context.Vehicles.Add(vehicle);
@@ -125,7 +128,6 @@ namespace FleetManager.Controllers
             catch (DbUpdateConcurrencyException ex)
             {
                 var entry = ex.Entries.Single();
-
                 var databaseValues = await entry.GetDatabaseValuesAsync(ct);
 
                 if (databaseValues == null)
@@ -151,6 +153,62 @@ namespace FleetManager.Controllers
 
             return NoContent();
         }
+
+        //oddzielny endpoint do modyfikacji stanu licznika
+        [HttpPatch("{id}/calibrate-odometer")]
+        public async Task<IActionResult> CalibrateOdometer(int id, VehicleOdometerCalibrationDto dto, CancellationToken ct)
+        {
+            var vehicle = await _context.Vehicles.FindAsync(new object[] { id }, ct);
+            if (vehicle == null) return NotFound();
+
+            _logger.LogWarning(
+                "AUDYT BEZPIECZEŃSTWA: Zmieniono stan licznika pojazdu {VehicleId}. Poprzedni przebieg: {OldOdometer}, Nowy przebieg: {NewOdometer}. Uzasadnienie: {Justification}",
+                id,
+                vehicle.OdometerReading,
+                dto.NewOdometerReading,
+                dto.Justification
+                );
+
+            vehicle.OdometerReading = dto.NewOdometerReading;
+
+            await _context.SaveChangesAsync(ct);
+            return NoContent();
+        }
+
+        // start symulatora telemetrii
+        [HttpPost("{id}/start-trip")]
+        public async Task<IActionResult> StartTrip(int id, CancellationToken ct)
+        {
+            var vehicle = await _context.Vehicles.FindAsync(new object[] { id }, ct);
+            if (vehicle == null) return NotFound();
+
+            if (vehicle.Status != VehicleStatus.Idle)
+            {
+                return BadRequest(new { message = "Pojazd musi byc w stanie Idle, aby rozpoczac jazde." });
+            }
+
+            vehicle.Status = VehicleStatus.InTransit;
+            await _context.SaveChangesAsync(ct);
+            return NoContent();
+        }
+
+        // zatrzymanie symulatora telemetrii
+        [HttpPost("{id}/end-trip")]
+        public async Task<IActionResult> EndTrip(int id, CancellationToken ct)
+        {
+            var vehicle = await _context.Vehicles.FindAsync(new object[] { id }, ct);
+            if (vehicle == null) return NotFound();
+
+            if (vehicle.Status != VehicleStatus.InTransit)
+            {
+                return BadRequest(new { message = "Tylko pojazd bedacy w stnie InTransit moze zakonczyc jazde." });
+            }
+
+            vehicle.Status = VehicleStatus.Idle;
+            await _context.SaveChangesAsync(ct);
+            return NoContent();
+        }
+
 
         //Usuwanie pojazdu po id
         [HttpDelete("{id}")]
