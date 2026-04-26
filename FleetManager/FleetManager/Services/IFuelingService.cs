@@ -1,5 +1,6 @@
 using FleetManager.DTOs;
 using FleetManager.Models;
+using FleetManager.Common.Results;
 
 namespace FleetManager.Services
 {
@@ -8,10 +9,10 @@ namespace FleetManager.Services
     public interface IFuelingService
     {
         // Tworzy nowe zdarzenie tankowania i aktualizuje pojazd
-        Task<(bool Success, string? Error, FuelingEvent? Event)> CreateFuelingAsync(FuelingEventCreateDto dto, CancellationToken ct);
+        Task<Result<FuelingEvent>> CreateFuelingAsync(FuelingEventCreateDto dto, CancellationToken ct);
 
         // Usuwa zdarzenie tankowania i cofa jego efekty (poziom paliwa, przebieg)
-        Task<(bool Success, string? Error)> DeleteFuelingAsync(int id, CancellationToken ct);
+        Task<Result> DeleteFuelingAsync(int id, CancellationToken ct);
         
         Task<FuelStatisticsDto?> GetFuelStatisticsAsync(int vehicleId, CancellationToken ct);
     }

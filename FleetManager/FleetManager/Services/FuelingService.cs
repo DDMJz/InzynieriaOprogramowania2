@@ -2,6 +2,7 @@ using FleetManager.Data;
 using FleetManager.DTOs;
 using FleetManager.Models;
 using Microsoft.EntityFrameworkCore;
+using FleetManager.Common.Results;
 
 namespace FleetManager.Services
 {
@@ -17,24 +18,24 @@ namespace FleetManager.Services
         }
 
         // Tworzy zdarzenie tankowania, aktualizuje przebieg i poziom paliwa pojazdu
-        public async Task<(bool Success, string? Error, FuelingEvent? Event)> CreateFuelingAsync(FuelingEventCreateDto dto, CancellationToken ct)
+        public async Task<Result<FuelingEvent>> CreateFuelingAsync(FuelingEventCreateDto dto, CancellationToken ct)
         {
             var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == dto.VehicleId, ct);
             if (vehicle == null)
             {
-                return (false, $"NotFound:Pojazd o ID {dto.VehicleId} nie istnieje.", null);
+                return Result<FuelingEvent>.NotFound($"Pojazd o ID {dto.VehicleId} nie istnieje.");
             }
 
             // walidacja przebiegu
             if (dto.OdometerReading < vehicle.OdometerReading)
             {
-                return (false, $"Podany przebieg ({dto.OdometerReading}) jest mniejszy niz aktualny przebieg pojazdu ({vehicle.OdometerReading}).", null);
+                return Result<FuelingEvent>.Validation($"Podany przebieg ({dto.OdometerReading}) jest mniejszy niz aktualny przebieg pojazdu ({vehicle.OdometerReading}).");
             }
 
             // walidacja liczby litrów
             if (dto.LitersAdded <= 0)
             {
-                return (false, "Ilość dolewanych paliwa musi być większa niż 0.", null);
+                return Result<FuelingEvent>.Validation("Ilość dolewanych paliwa musi być większa niż 0.");
             }
 
             var fuelingEvent = new FuelingEvent
@@ -58,19 +59,22 @@ namespace FleetManager.Services
             }
             catch (DbUpdateException ex)
             {
-                return (false, ex.Message, null);
+                return Result<FuelingEvent>.Validation(ex.Message);
             }
 
-            return (true, null, fuelingEvent);
+            return Result<FuelingEvent>.Success(fuelingEvent);
         }
 
         // Usuwa zdarzenie tankowania i cofa jego efekty na pojeździe
-        public async Task<(bool Success, string? Error)> DeleteFuelingAsync(int id, CancellationToken ct)
+        public async Task<Result> DeleteFuelingAsync(int id, CancellationToken ct)
         {
-            var fuelingEvent = await _context.FuelingEvents.Include(f => f.Vehicle).FirstOrDefaultAsync(f => f.Id == id, ct);
+            var fuelingEvent = await _context.FuelingEvents
+                .Include(f => f.Vehicle)
+                .FirstOrDefaultAsync(f => f.Id == id, ct);
+            
             if (fuelingEvent == null)
             {
-                return (false, $"NotFound:Zdarzenie tankowania o ID {id} nie istnieje.");
+                return Result.NotFound($"Zdarzenie tankowania o ID {id} nie istnieje.");
             }
 
             // cofanie wpływu na poziom paliwa
@@ -106,7 +110,7 @@ namespace FleetManager.Services
 
             await _context.SaveChangesAsync(ct);
 
-            return (true, null);
+            return Result.Success();
         }
 
         public async Task<FuelStatisticsDto?> GetFuelStatisticsAsync(int vehicleId, CancellationToken ct)

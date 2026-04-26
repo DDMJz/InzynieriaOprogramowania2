@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using FleetManager.Data;
 using FleetManager.Models;
 using FleetManager.DTOs;
+using FleetManager.Common.Results;
 
 namespace FleetManager.Controllers
 {
@@ -79,17 +80,19 @@ public class FuelingEventsController : ControllerBase
         public async Task<IActionResult> PostFuelingEvent(FuelingEventCreateDto dto, CancellationToken ct)
         {
             var result = await _fuelingService.CreateFuelingAsync(dto, ct);
-            if (!result.Success)
+            
+            if (!result.IsSuccess)
             {
-                if (result.Error != null && result.Error.StartsWith("NotFound:"))
+                return result.ErrorType switch
                 {
-                    return NotFound(new { message = result.Error.Substring("NotFound:".Length) });
-                }
-                return BadRequest(new { message = result.Error });
+                    ResultErrorType.NotFound => NotFound(new { message = result.Error }),
+                    ResultErrorType.Validation => BadRequest(new { message = result.Error }),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError, new { message = "Wystąpił nieoczekiwany błąd wewnętrzny serwera." })
+                };
             }
 
-            var responseDto = new FuelingEventCreatedResponseDto { Id = result.Event!.Id };
-            return CreatedAtAction(nameof(GetFuelingEvent), new { id = result.Event.Id }, responseDto);
+            var responseDto = new FuelingEventCreatedResponseDto { Id = result.Value!.Id };
+            return CreatedAtAction(nameof(GetFuelingEvent), new { id = result.Value.Id }, responseDto);
         }
 
         // DELETE: api/FuelingEvents/{id}
@@ -99,13 +102,15 @@ public class FuelingEventsController : ControllerBase
         public async Task<IActionResult> DeleteFuelingEvent(int id, CancellationToken ct)
         {
             var result = await _fuelingService.DeleteFuelingAsync(id, ct);
-            if (!result.Success)
+            
+            if (!result.IsSuccess)
             {
-                if (result.Error != null && result.Error.StartsWith("NotFound:"))
+                return result.ErrorType switch
                 {
-                    return NotFound(new { message = result.Error.Substring("NotFound:".Length) });
-                }
-                return BadRequest(new { message = result.Error });
+                    ResultErrorType.NotFound => NotFound(new { message = result.Error }),
+                    ResultErrorType.Validation => BadRequest(new { message = result.Error }),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError, new { message = "Wystąpił nieoczekiwany błąd wewnętrzny serwera." })
+                };
             }
 
             return NoContent();
@@ -114,4 +119,43 @@ public class FuelingEventsController : ControllerBase
 
 
     }
+}
+
+
+
+
+
+
+
+Przykladowy serwis
+public async Task<Result<Order>> GetOrderAsync(int id)
+{
+    var order = await _db.Orders.FindAsync(id);
+
+    if (order is null)
+        return Result<Order>.NotFound($"Order {id} not found.");
+
+    if (order.IsExpired)
+        return Result<Order>.Validation("Order has already expired.");
+
+    return Result<Order>.Success(order);
+}
+
+I kontroler:
+[HttpGet("{id}")]
+public async Task<IActionResult> GetOrder(int id)
+{
+    var result = await _orderService.GetOrderAsync(id);
+
+    if (!result.IsSuccess)
+    {
+        return result.ErrorType switch
+        {
+            ResultErrorType.NotFound => NotFound(result.Error),
+            ResultErrorType.Validation => BadRequest(result.Error),
+            _ => StatusCode(500)
+        };
+    }
+
+    return Ok(result.Value);
 }
