@@ -2,11 +2,11 @@ using FleetManager.Data;
 using FleetManager.DTOs;
 using FleetManager.Models;
 using Microsoft.EntityFrameworkCore;
+using FleetManager.Common.Results;
 
 namespace FleetManager.Services
 {
-    // Implementacja serwisu eksploatacji: reguły tworzenia/usuwania zdarzeń serwisowych
-    //po wprowadzeniu obslugi TelemetryLog nalezy zmienic logike uaktualniania stanu licznika 
+    
     public class MaintenanceService : IMaintenanceService
     {
         private readonly AppDbContext _context;
@@ -17,24 +17,18 @@ namespace FleetManager.Services
         }
 
         // Tworzy zdarzenie serwisowe i aktualizuje przebieg pojazdu
-        public async Task<(bool Success, string? Error, MaintenanceEvent? Event)> CreateMaintenanceAsync(MaintenanceEventCreateDto dto, CancellationToken ct)
+        public async Task<Result<MaintenanceEvent>> CreateMaintenanceAsync(MaintenanceEventCreateDto dto, CancellationToken ct)
         {
             var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == dto.VehicleId, ct);
             if (vehicle == null)
             {
-                return (false, $"NotFound:Pojazd o ID {dto.VehicleId} nie istnieje.", null);
+                return Result<MaintenanceEvent>.NotFound($"Pojazd o ID {dto.VehicleId} nie istnieje.");
             }
 
             var type = await _context.MaintenanceTypes.FirstOrDefaultAsync(t => t.Id == dto.MaintenanceTypeId, ct);
             if (type == null)
             {
-                return (false, $"Typ naprawy o ID {dto.MaintenanceTypeId} nie istnieje w bazie.", null);
-            }
-
-            // walidacja przebiegu
-            if (dto.OdometerReading < vehicle.OdometerReading)
-            {
-                return (false, $"Podany przebieg ({dto.OdometerReading}) jest mniejszy niz aktualny przebieg pojazdu ({vehicle.OdometerReading}).", null);
+                return Result<MaintenanceEvent>.NotFound($"Typ naprawy o ID {dto.MaintenanceTypeId} nie istnieje.");
             }
 
             var maintenanceEvent = new MaintenanceEvent
@@ -47,7 +41,10 @@ namespace FleetManager.Services
                 Date = dto.Date
             };
 
-            vehicle.OdometerReading = dto.OdometerReading;
+            if (dto.OdometerReading > vehicle.OdometerReading)
+            {
+                vehicle.OdometerReading = dto.OdometerReading;
+            }
 
             _context.MaintenanceEvents.Add(maintenanceEvent);
 
@@ -57,50 +54,35 @@ namespace FleetManager.Services
             }
             catch (DbUpdateException ex)
             {
-                return (false, ex.Message, null);
+                return Result<MaintenanceEvent>.Validation($"Błąd zapisu do bazy danych: {ex.Message}");
             }
 
-            return (true, null, maintenanceEvent);
+            return Result<MaintenanceEvent>.Success(maintenanceEvent);
         }
 
-        // Usuwa zdarzenie serwisowe i cofa przebieg pojazdu do ostatniego znanego zdarzenia
-        public async Task<(bool Success, string? Error)> DeleteMaintenanceAsync(int id, CancellationToken ct)
+        // Usuwa zdarzenie serwisowe (przebieg nie jest w ogole sprawdzany)
+        public async Task<Result> DeleteMaintenanceAsync(int id, CancellationToken ct)
         {
-            var mEvent = await _context.MaintenanceEvents.Include(m => m.Vehicle).FirstOrDefaultAsync(m => m.Id == id, ct);
+            var mEvent = await _context.MaintenanceEvents
+                .FirstOrDefaultAsync(m => m.Id == id, ct);
+
             if (mEvent == null)
             {
-                return (false, $"NotFound:Zdarzenie serwisowe o ID {id} nie istnieje.");
-            }
-
-            var vehicle = mEvent.Vehicle;
-            if (vehicle != null)
-            {
-                // cofnięcie przebiegu do ostatniego zdarzenia (tankowanie lub inne serwisowe)
-                var lastFuel = await _context.FuelingEvents
-                    .Where(f => f.VehicleId == vehicle.Id)
-                    .OrderByDescending(f => f.Date)
-                    .ThenByDescending(f => f.Id)
-                    .FirstOrDefaultAsync(ct);
-
-                var lastMaintenance = await _context.MaintenanceEvents
-                    .Where(m => m.VehicleId == vehicle.Id && m.Id != id)
-                    .OrderByDescending(m => m.Date)
-                    .ThenByDescending(m => m.Id)
-                    .FirstOrDefaultAsync(ct);
-
-                int newOdometer = 0;
-                if (lastFuel != null || lastMaintenance != null)
-                {
-                    newOdometer = Math.Max(lastFuel?.OdometerReading ?? 0, lastMaintenance?.OdometerReading ?? 0);
-                }
-
-                vehicle.OdometerReading = newOdometer;
+                return Result.NotFound($"Zdarzenie serwisowe o ID {id} nie istnieje.");
             }
 
             _context.MaintenanceEvents.Remove(mEvent);
-            await _context.SaveChangesAsync(ct);
 
-            return (true, null);
+            try
+            {
+                await _context.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Result.Validation("Zdarzenie zostało zmodyfikowane lub usunięte przez inny proces.");
+            }
+
+            return Result.Success();
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FleetManager.Data;
-using FleetManager.Models;
 using FleetManager.DTOs;
+using FleetManager.Common.Results;
 
 namespace FleetManager.Controllers
 {
@@ -77,37 +77,40 @@ namespace FleetManager.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]//to jest niestandardowe(niegodne z domyslna konwencja)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]//to jest niestandardowe(niegodne z globalna konwencja w FleetApiConventions.cs )
         public async Task<IActionResult> PostMaintenanceEvent(MaintenanceEventCreateDto dto, CancellationToken ct)
         {
             var result = await _maintenanceService.CreateMaintenanceAsync(dto, ct);
-            if (!result.Success)
+            
+            if (!result.IsSuccess)
             {
-                if (result.Error != null && result.Error.StartsWith("NotFound:"))
+                return result.ErrorType switch
                 {
-                    return NotFound(new { message = result.Error.Substring("NotFound:".Length) });
-                }
-                return BadRequest(new { message = result.Error });
+                    ResultErrorType.NotFound => NotFound(new { message = result.Error }),
+                    ResultErrorType.Validation => BadRequest(new { message = result.Error }),
+                    _ => StatusCode(500, new { message = "Krytyczny błąd serwera." })
+                };
             }
 
-            var responseDto = new MaintenanceEventCreatedResponseDto { Id = result.Event!.Id };
+            var responseDto = new MaintenanceEventCreatedResponseDto { Id = result.Value!.Id };
 
-            return CreatedAtAction(nameof(GetMaintenanceEvent), new { id = result.Event.Id }, responseDto);
+            return CreatedAtAction(nameof(GetMaintenanceEvent), new { id = result.Value.Id }, responseDto);
         }
 
         // DELETE: api/MaintenanceEvents/{id}
-        // Deleguje usuwanie zdarzenia serwisowego (serwis cofa efekty na pojeździe)
+        // Deleguje usuwanie zdarzenia serwisowego 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMaintenanceEvent(int id, CancellationToken ct)
         {
             var result = await _maintenanceService.DeleteMaintenanceAsync(id, ct);
-            if (!result.Success)
+            if (!result.IsSuccess)
             {
-                if (result.Error != null && result.Error.StartsWith("NotFound:"))
+                return result.ErrorType switch
                 {
-                    return NotFound(new { message = result.Error.Substring("NotFound:".Length) });
-                }
-                return BadRequest(new { message = result.Error });
+                    ResultErrorType.NotFound => NotFound(new { message = result.Error }),
+                    ResultErrorType.Validation => BadRequest(new { message = result.Error }),
+                    _ => StatusCode(500, new { message = "Krytyczny błąd serwera." })
+                };
             }
 
             return NoContent();
