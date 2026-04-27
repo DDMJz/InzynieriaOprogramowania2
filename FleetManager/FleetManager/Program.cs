@@ -12,7 +12,7 @@ namespace FleetManager
 
             var builder = WebApplication.CreateBuilder(args);
 
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection"); //znajduje w pliku JSON w sekcji ConnectionStrig
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection"); //znajduje w pliku appsettings.json w sekcji ConnectionStrigs
 
             builder.Services.AddDbContext<FleetManager.Data.AppDbContext>(
                 (options) => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
@@ -30,7 +30,9 @@ namespace FleetManager
             // business logic services
             builder.Services.AddScoped<FleetManager.Services.IFuelingService, FleetManager.Services.FuelingService>();
             builder.Services.AddScoped<FleetManager.Services.IMaintenanceService, FleetManager.Services.MaintenanceService>();
-            //w tej chwili nie uzywane (logika nie jest na to gotowa):
+
+            //symulator telemetrii:
+            builder.Services.AddHostedService<FleetManager.Workers.TelemetrySimulatorWorker>();
 
             var app = builder.Build();
 
