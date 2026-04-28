@@ -109,6 +109,7 @@ public class FuelingEventsController : ControllerBase
                 {
                     ResultErrorType.NotFound => NotFound(new { message = result.Error }),
                     ResultErrorType.Validation => BadRequest(new { message = result.Error }),
+                    ResultErrorType.Conflict => Conflict(new { message = result.Error }),
                     _ => StatusCode(StatusCodes.Status500InternalServerError, new { message = "Wystąpił nieoczekiwany błąd wewnętrzny serwera." })
                 };
             }

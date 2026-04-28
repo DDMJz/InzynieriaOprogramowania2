@@ -48,14 +48,7 @@ namespace FleetManager.Services
 
             _context.MaintenanceEvents.Add(maintenanceEvent);
 
-            try
-            {
-                await _context.SaveChangesAsync(ct);
-            }
-            catch (DbUpdateException ex)
-            {
-                return Result<MaintenanceEvent>.Validation($"Błąd zapisu do bazy danych: {ex.Message}");
-            }
+            await _context.SaveChangesAsync(ct);
 
             return Result<MaintenanceEvent>.Success(maintenanceEvent);
         }
@@ -79,7 +72,7 @@ namespace FleetManager.Services
             }
             catch (DbUpdateConcurrencyException)
             {
-                return Result.Validation("Zdarzenie zostało zmodyfikowane lub usunięte przez inny proces.");
+                return Result.Conflict("Zdarzenie zostało zmodyfikowane lub usunięte przez inny proces.");
             }
 
             return Result.Success();

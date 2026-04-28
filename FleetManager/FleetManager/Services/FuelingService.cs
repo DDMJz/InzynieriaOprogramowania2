@@ -48,14 +48,7 @@ namespace FleetManager.Services
 
             _context.FuelingEvents.Add(fuelingEvent);
 
-            try
-            {
-                await _context.SaveChangesAsync(ct);
-            }
-            catch (DbUpdateException ex)
-            {
-                return Result<FuelingEvent>.Validation(ex.Message);
-            }
+            await _context.SaveChangesAsync(ct);
 
             return Result<FuelingEvent>.Success(fuelingEvent);
         }
@@ -71,7 +64,14 @@ namespace FleetManager.Services
             }
 
             _context.FuelingEvents.Remove(fuelingEvent);
-            await _context.SaveChangesAsync(ct);
+            try
+            {
+                await _context.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Result.Conflict("Zdarzenie tankowania zostało zmodyfikowane lub usunięte przez inny proces.");
+            }
 
             return Result.Success();
         }

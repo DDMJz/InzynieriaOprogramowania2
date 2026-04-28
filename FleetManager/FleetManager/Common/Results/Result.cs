@@ -22,5 +22,6 @@
         public static Result Success() => new();
         public static Result NotFound(string error) => new(error, ResultErrorType.NotFound);
         public static Result Validation(string error) => new(error, ResultErrorType.Validation);
+        public static Result Conflict(string error) => new(error, ResultErrorType.Conflict);
     }
 }
