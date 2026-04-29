@@ -19,6 +19,21 @@ namespace FleetManager.Services
         // Tworzy zdarzenie serwisowe i aktualizuje przebieg pojazdu
         public async Task<Result<MaintenanceEvent>> CreateMaintenanceAsync(MaintenanceEventCreateDto dto, CancellationToken ct)
         {
+            if (dto.TotalCost < 0)
+            {
+                return Result<MaintenanceEvent>.Validation("Koszt naprawy nie może być wartością ujemną.");
+            }
+
+            if (dto.Date > DateTime.UtcNow)
+            {
+                return Result<MaintenanceEvent>.Validation("Data zdarzenia serwisowego nie może wybiegać w przyszłość.");
+            }
+
+            if (dto.OdometerReading < 0)
+            {
+                return Result<MaintenanceEvent>.Validation("Przebieg pojazdu nie może być ujemny.");
+            }
+
             var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == dto.VehicleId, ct);
             if (vehicle == null)
             {

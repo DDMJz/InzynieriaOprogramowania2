@@ -108,7 +108,6 @@ namespace FleetManager.Controllers
                 return result.ErrorType switch
                 {
                     ResultErrorType.NotFound => NotFound(new { message = result.Error }),
-                    ResultErrorType.Validation => BadRequest(new { message = result.Error }),
                     ResultErrorType.Conflict => Conflict(new { message = result.Error }),
                     _ => StatusCode(500, new { message = "Krytyczny błąd serwera." })
                 };
