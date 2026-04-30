@@ -11,7 +11,7 @@ namespace FleetManager.Services
         // Tworzy nowe zdarzenie tankowania i aktualizuje pojazd
         Task<Result<FuelingEvent>> CreateFuelingAsync(FuelingEventCreateDto dto, CancellationToken ct);
 
-        // Usuwa zdarzenie tankowania i cofa jego efekty (poziom paliwa, przebieg)
+        // Usuwa zdarzenie tankowania 
         Task<Result> DeleteFuelingAsync(int id, CancellationToken ct);
         
         Task<FuelStatisticsDto?> GetFuelStatisticsAsync(int vehicleId, CancellationToken ct);
