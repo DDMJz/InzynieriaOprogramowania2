@@ -48,6 +48,8 @@ namespace FleetManager.Services
                 );
 
                 var dto = new VehicleMaintenanceStatusDto(
+                    MaintenanceTypeId: type.Id,            
+                    MaintenanceTypeName: type.Name,
                     StatusLevel: status.Level.ToString(), // Konwersja ENUM do String
                     Message: status.Message,
                     KilometersRemaining: status.KilometersRemaining,
