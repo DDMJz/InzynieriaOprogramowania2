@@ -51,6 +51,7 @@ namespace FleetManager.Data
                 new MaintenanceType
                 {
                     Id = 1,
+                    SystemCode = "OIL_CHANGE",
                     Name = "Wymiana Oleju",
                     DefaultIntervalOdometer = 15000,
                     DefaultIntervalDays = 365
@@ -58,14 +59,24 @@ namespace FleetManager.Data
                 new MaintenanceType
                 {
                     Id = 2,
+                    SystemCode = "LEGAL_INSPECTION",
                     Name = "Przegląd Rejestracyjny",
-                    DefaultIntervalOdometer = 0,
+                    DefaultIntervalOdometer = null,
                     DefaultIntervalDays = 365
                 },
                 new MaintenanceType
                 {
-                    Id = 99, 
-                    Name = "Inne",
+                    Id = 3,
+                    SystemCode = "BRAKE_PADS",
+                    Name = "Wymiana Klocków Hamulcowych",
+                    DefaultIntervalOdometer = 30000,
+                    DefaultIntervalDays = null      
+                },
+                new MaintenanceType
+                {
+                    Id = 99,
+                    SystemCode = "OTHER",
+                    Name = "Inne / Naprawa dorazna",
                     DefaultIntervalOdometer = 0,
                     DefaultIntervalDays = 0
                 }

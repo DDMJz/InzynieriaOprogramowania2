@@ -1,5 +1,7 @@
-using Microsoft.EntityFrameworkCore;
+using FleetManager.Services;
+using FleetManager.Strategies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 [assembly: ApiConventionType(typeof(FleetManager.Conventions.FleetApiConventions))]
 
@@ -18,25 +20,32 @@ namespace FleetManager
                 (options) => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
             );
 
-            // Add services to the container.
+            // dodawanie serwisow
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
-            // business logic services
             builder.Services.AddScoped<FleetManager.Services.IFuelingService, FleetManager.Services.FuelingService>();
             builder.Services.AddScoped<FleetManager.Services.IMaintenanceService, FleetManager.Services.MaintenanceService>();
+            builder.Services.AddScoped<IMaintenanceEvaluationService, MaintenanceEvaluationService>();
+            builder.Services.AddScoped<IVehicleMaintenanceStatusService, VehicleMaintenanceStatusService>();
+            // rejestracja strategi
+            builder.Services.AddTransient<TimeOnlyStrategy>();
+            builder.Services.AddTransient<DistanceOnlyStrategy>();
+            builder.Services.AddTransient<CompositeStrategy>();
+            // Rejestracja interfejsu nadrzędnego dla pętli Resolvera
+            builder.Services.AddTransient<IMaintenanceStrategy, TimeOnlyStrategy>();
+            builder.Services.AddTransient<IMaintenanceStrategy, DistanceOnlyStrategy>();
+            builder.Services.AddTransient<IMaintenanceStrategy, CompositeStrategy>();
 
             //symulator telemetrii:
             builder.Services.AddHostedService<FleetManager.Workers.TelemetrySimulatorWorker>();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -47,7 +56,6 @@ namespace FleetManager
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

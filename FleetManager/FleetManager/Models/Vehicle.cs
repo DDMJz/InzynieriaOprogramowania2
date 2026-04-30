@@ -17,7 +17,9 @@ namespace FleetManager.Models
 
         //------------------modul tankowania 
         public double FuelTankCapacity { get; set; }
-        
+
+        public double FuelConsumption { get; set; }
+
 
         //------------------modul przebiegow i eksploatacji bedzie zrealizowany odzielnej klasie z logika  
         public int OdometerReading { get; set; }

@@ -4,6 +4,8 @@ using FleetManager.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FleetManager.Common.Results;
+using FleetManager.Strategies; 
+using FleetManager.Services;
 
 namespace FleetManager.Controllers
 {
@@ -14,13 +16,19 @@ namespace FleetManager.Controllers
         private readonly AppDbContext _context;
         private readonly Services.IFuelingService _fuelingService;
         private readonly Services.IVehicleService _vehicleService;
+        private readonly IVehicleMaintenanceStatusService _maintenanceStatusService;
 
         // Konstruktor: 
-        public VehiclesController(AppDbContext context, Services.IFuelingService fuelingService, Services.IVehicleService vehicleService)
+        public VehiclesController(
+            AppDbContext context, 
+            Services.IFuelingService fuelingService, 
+            Services.IVehicleService vehicleService, 
+            IVehicleMaintenanceStatusService maintenanceStatusService)
         {
             _context = context;
             _fuelingService = fuelingService;
             _vehicleService = vehicleService;
+            _maintenanceStatusService = maintenanceStatusService;
         }
 
         // Pobieranie wszystkich pojazdów
@@ -84,6 +92,20 @@ namespace FleetManager.Controllers
 
             return Ok(stats);
         }
+
+        // pobieranie statusu serwisowego
+        [HttpGet("{id}/maintenance-status")]
+        public async Task<ActionResult<IEnumerable<VehicleMaintenanceStatusDto>>> GetMaintenanceStatus(int id, CancellationToken ct)
+        {
+            var results = await _maintenanceStatusService.GetVehicleMaintenanceStatusAsync(id, ct);
+
+            if (results == null)
+            {
+                return NotFound(new { message = $"Pojazd o ID {id} nie istnieje w systemie." });
+            }
+            return Ok(results);
+        }
+
 
         // Dodawanie nowego pojazdu
         [HttpPost]
