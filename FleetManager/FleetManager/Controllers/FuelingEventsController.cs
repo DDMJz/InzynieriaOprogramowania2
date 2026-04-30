@@ -9,7 +9,7 @@ namespace FleetManager.Controllers
 // Kontroler REST: zarządzanie zdarzeniami tankowania
 [Route("api/[controller]")]
 [ApiController]
-public class FuelingEventsController : ControllerBase
+public class FuelingEventsController : ApiBaseController
     {
         private readonly AppDbContext _context;
         private readonly Services.IFuelingService _fuelingService;
@@ -64,7 +64,7 @@ public class FuelingEventsController : ControllerBase
 
             if (dto == null)
             {
-                return NotFound();
+                return NotFound(new { message = $"Nie znaleziono tankowania o ID {id}." });
             }
             // zwraca DTO ze zdarzeniem tankowania
             return Ok(dto);
@@ -83,12 +83,7 @@ public class FuelingEventsController : ControllerBase
             
             if (!result.IsSuccess)
             {
-                return result.ErrorType switch
-                {
-                    ResultErrorType.NotFound => NotFound(new { message = result.Error }),
-                    ResultErrorType.Validation => BadRequest(new { message = result.Error }),
-                    _ => StatusCode(StatusCodes.Status500InternalServerError, new { message = "Wystąpił nieoczekiwany błąd wewnętrzny serwera." })
-                };
+                return HandleErrorResult(result);
             }
 
             var responseDto = new FuelingEventCreatedResponseDto { Id = result.Value!.Id };
@@ -102,17 +97,8 @@ public class FuelingEventsController : ControllerBase
         public async Task<IActionResult> DeleteFuelingEvent(int id, CancellationToken ct)
         {
             var result = await _fuelingService.DeleteFuelingAsync(id, ct);
-            
-            if (!result.IsSuccess)
-            {
-                return result.ErrorType switch
-                {
-                    ResultErrorType.NotFound => NotFound(new { message = result.Error }),
-                    ResultErrorType.Validation => BadRequest(new { message = result.Error }),
-                    ResultErrorType.Conflict => Conflict(new { message = result.Error }),
-                    _ => StatusCode(StatusCodes.Status500InternalServerError, new { message = "Wystąpił nieoczekiwany błąd wewnętrzny serwera." })
-                };
-            }
+
+            return result.IsSuccess ? NoContent() : HandleErrorResult(result);
 
             return NoContent();
         }

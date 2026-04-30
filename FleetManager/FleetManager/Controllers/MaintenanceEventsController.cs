@@ -9,7 +9,7 @@ namespace FleetManager.Controllers
     // Kontroler REST: zarządzanie zdarzeniami serwisowymi (eksploatacja)
     [Route("api/[controller]")]
     [ApiController]
-    public class MaintenanceEventsController : ControllerBase
+    public class MaintenanceEventsController : ApiBaseController
     {
         private readonly AppDbContext _context;
         private readonly Services.IMaintenanceService _maintenanceService;
@@ -66,7 +66,7 @@ namespace FleetManager.Controllers
 
             if (dto == null)
             {
-                return NotFound();
+                return NotFound(new { message = $"Nie znaleziono zdarzenia serwisowego o ID {id}." });
             }
             // zwraca DTO ze zdarzeniem serwisowym
             return Ok(dto);
@@ -81,16 +81,8 @@ namespace FleetManager.Controllers
         public async Task<IActionResult> PostMaintenanceEvent(MaintenanceEventCreateDto dto, CancellationToken ct)
         {
             var result = await _maintenanceService.CreateMaintenanceAsync(dto, ct);
-            
-            if (!result.IsSuccess)
-            {
-                return result.ErrorType switch
-                {
-                    ResultErrorType.NotFound => NotFound(new { message = result.Error }),
-                    ResultErrorType.Validation => BadRequest(new { message = result.Error }),
-                    _ => StatusCode(500, new { message = "Krytyczny błąd serwera." })
-                };
-            }
+
+            if (!result.IsSuccess) return HandleErrorResult(result);
 
             var responseDto = new MaintenanceEventCreatedResponseDto { Id = result.Value!.Id };
 
@@ -103,18 +95,10 @@ namespace FleetManager.Controllers
         public async Task<IActionResult> DeleteMaintenanceEvent(int id, CancellationToken ct)
         {
             var result = await _maintenanceService.DeleteMaintenanceAsync(id, ct);
-            if (!result.IsSuccess)
-            {
-                return result.ErrorType switch
-                {
-                    ResultErrorType.NotFound => NotFound(new { message = result.Error }),
-                    ResultErrorType.Conflict => Conflict(new { message = result.Error }),
-                    _ => StatusCode(500, new { message = "Krytyczny błąd serwera." })
-                };
-            }
 
-            return NoContent();
+            return result.IsSuccess ? NoContent() : HandleErrorResult(result);
         }
+            
     }
 
 }

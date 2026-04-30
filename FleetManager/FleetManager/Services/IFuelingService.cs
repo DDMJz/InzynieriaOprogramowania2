@@ -14,6 +14,6 @@ namespace FleetManager.Services
         // Usuwa zdarzenie tankowania 
         Task<Result> DeleteFuelingAsync(int id, CancellationToken ct);
         
-        Task<FuelStatisticsDto?> GetFuelStatisticsAsync(int vehicleId, CancellationToken ct);
+        Task<Result<FuelStatisticsDto>> GetFuelStatisticsAsync(int vehicleId, CancellationToken ct);
     }
 }

@@ -1,4 +1,5 @@
-﻿using FleetManager.Data;
+﻿using FleetManager.Common.Results;
+using FleetManager.Data;
 using FleetManager.DTOs;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,11 +16,15 @@ namespace FleetManager.Services
             _evaluationService = evaluationService;
         }
 
-        public async Task<IEnumerable<VehicleMaintenanceStatusDto>?> GetVehicleMaintenanceStatusAsync(int vehicleId, CancellationToken ct)
+        public async Task<Result<IEnumerable<VehicleMaintenanceStatusDto>>> GetVehicleMaintenanceStatusAsync(int vehicleId, CancellationToken ct)
         {
             var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == vehicleId, ct);
-            if (vehicle == null) return null;
-
+            if (vehicle == null)
+            {
+                return Result<IEnumerable<VehicleMaintenanceStatusDto>>.NotFound(
+                    $"Pojazd o ID {vehicleId} nie istnieje w systemie."
+                );
+            }
             // pobranie wszystkich typów przeglądów
             var maintenanceTypes = await _context.MaintenanceTypes.ToListAsync(ct);
             var results = new List<VehicleMaintenanceStatusDto>();
@@ -60,7 +65,7 @@ namespace FleetManager.Services
                 results.Add(dto);
             }
 
-            return results;
+            return Result<IEnumerable<VehicleMaintenanceStatusDto>>.Success(results);
         }
     }
 }

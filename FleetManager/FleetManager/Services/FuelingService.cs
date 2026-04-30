@@ -76,11 +76,14 @@ namespace FleetManager.Services
             return Result.Success();
         }
 
-        public async Task<FuelStatisticsDto?> GetFuelStatisticsAsync(int vehicleId, CancellationToken ct)
+        public async Task<Result<FuelStatisticsDto>> GetFuelStatisticsAsync(int vehicleId, CancellationToken ct)
         {
             // walidacja istnienia samochodu
             var vehicleExists = await _context.Vehicles.AnyAsync(v => v.Id == vehicleId, ct);
-            if (!vehicleExists) return null;
+            if (!vehicleExists)
+            {
+                return Result<FuelStatisticsDto>.NotFound($"Pojazd o ID {vehicleId} nie istnieje w systemie.");
+            }
 
             // pobranie tankowan
             var fuelingEvents = await _context.FuelingEvents
@@ -91,8 +94,11 @@ namespace FleetManager.Services
             var stats = new FuelStatisticsDto { VehicleId = vehicleId };
 
             // jezeli mniej niż 2 tankowania, oddawane puste statystyki (brak dystansu)
-            if (fuelingEvents.Count < 2) return stats;
-
+            if (fuelingEvents.Count < 2)
+            {
+                return Result<FuelStatisticsDto>.Success(stats);
+            }
+            
             // obliczenia (zakladamy ze kazde tamkowanie jest do pelna)
             var firstReading = fuelingEvents.First().OdometerReading;
             var lastReading = fuelingEvents.Last().OdometerReading;
@@ -109,7 +115,7 @@ namespace FleetManager.Services
                 stats.AverageConsumption = Math.Round((stats.TotalFuelLiters / stats.TotalDistanceKm) * 100, 2);
             }
 
-            return stats;
+            return Result<FuelStatisticsDto>.Success(stats);
         }
     }
 }

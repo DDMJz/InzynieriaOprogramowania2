@@ -1,17 +1,15 @@
-﻿using FleetManager.Data;
+﻿using FleetManager.Common.Results;
+using FleetManager.Data;
 using FleetManager.DTOs; 
-using FleetManager.Models;
+using FleetManager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using FleetManager.Common.Results;
-using FleetManager.Strategies; 
-using FleetManager.Services;
 
 namespace FleetManager.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class VehiclesController : ControllerBase
+    public class VehiclesController : ApiBaseController
     {
         private readonly AppDbContext _context;
         private readonly Services.IFuelingService _fuelingService;
@@ -35,20 +33,22 @@ namespace FleetManager.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<VehicleReadDto>>> GetVehicles(CancellationToken ct)
         {
-            return await _context.Vehicles
-                .Select(v => new VehicleReadDto
-                {
-                    Id = v.Id,
-                    Vin = v.Vin,
-                    LicensePlate = v.LicensePlate,
-                    Brand = v.Brand,
-                    Model = v.Model,
-                    Year = v.Year,
-                    OdometerReading = v.OdometerReading,
-                    Status = v.Status.ToString(),
-                    RowVersion = v.RowVersion //potrzebne dla put 
-                })
-                .ToListAsync(ct);
+            var vehicles = await _context.Vehicles
+               .Select(v => new VehicleReadDto
+               {
+                   Id = v.Id,
+                   Vin = v.Vin,
+                   LicensePlate = v.LicensePlate,
+                   Brand = v.Brand,
+                   Model = v.Model,
+                   Year = v.Year,
+                   OdometerReading = v.OdometerReading,
+                   Status = v.Status.ToString(),
+                   RowVersion = v.RowVersion //potrzebne dla put
+               })
+               .ToListAsync(ct);
+
+            return Ok(vehicles);
         }
 
         // Pobieranie pojazdu po id (kluczu glownym)
@@ -83,29 +83,19 @@ namespace FleetManager.Controllers
         [HttpGet("{id}/FuelStatistics")]
         public async Task<ActionResult<FuelStatisticsDto>> GetFuelStatistics(int id, CancellationToken ct)
         {
-            var stats = await _fuelingService.GetFuelStatisticsAsync(id, ct);
+            var result = await _fuelingService.GetFuelStatisticsAsync(id, ct);
 
-            if (stats == null)
-            {
-                return NotFound(new { message = $"Pojazd o ID {id} nie istnieje w systemie." });
-            }
-
-            return Ok(stats);
+            return result.IsSuccess ? Ok(result.Value) : HandleErrorResult(result);
         }
 
         // pobieranie statusu serwisowego
         [HttpGet("{id}/maintenance-status")]
         public async Task<ActionResult<IEnumerable<VehicleMaintenanceStatusDto>>> GetMaintenanceStatus(int id, CancellationToken ct)
         {
-            var results = await _maintenanceStatusService.GetVehicleMaintenanceStatusAsync(id, ct);
+            var result = await _maintenanceStatusService.GetVehicleMaintenanceStatusAsync(id, ct);
 
-            if (results == null)
-            {
-                return NotFound(new { message = $"Pojazd o ID {id} nie istnieje w systemie." });
-            }
-            return Ok(results);
+            return result.IsSuccess ? Ok(result.Value) : HandleErrorResult(result);
         }
-
 
         // Dodawanie nowego pojazdu
         [HttpPost]
@@ -115,11 +105,7 @@ namespace FleetManager.Controllers
 
             if (!result.IsSuccess)
             {
-                return result.ErrorType switch
-                {
-                    ResultErrorType.Validation => BadRequest(new { message = result.Error }),
-                    _ => StatusCode(500, new { message = "Krytyczny błąd serwera." })
-                };
+                return HandleErrorResult(result);
             }
 
             var responseDto = new VehicleCreatedResponseDto { Id = result.Value!.Id };
@@ -139,16 +125,11 @@ namespace FleetManager.Controllers
 
             if (!result.IsSuccess)
             {
-                return result.ErrorType switch
+                if (result.ErrorType == ResultErrorType.Conflict)
                 {
-                    ResultErrorType.NotFound => NotFound(new { message = result.Error }),
-                    ResultErrorType.Validation => BadRequest(new { message = result.Error }),
-                    // Wydobycie ładunku błędu i wysłanie go w odpowiedzi JSON
-                    ResultErrorType.Conflict => Conflict(result.Value),
-                    _ => StatusCode(500, new { message = "Krytyczny błąd serwera." })
-                };
+                    return Conflict(result.Value);// Wydobycie ładunku błędu i wysłanie go w odpowiedzi JSON
+                }
             }
-
             return NoContent();
         }
 
@@ -176,25 +157,12 @@ namespace FleetManager.Controllers
             return result.IsSuccess ? NoContent() : HandleErrorResult(result);
         }
 
-
         //Usuwanie pojazdu po id
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteVehicle(int id, CancellationToken ct)
         {
             var result = await _vehicleService.DeleteVehicleAsync(id, ct);
             return result.IsSuccess ? NoContent() : HandleErrorResult(result);
-        }
-        
-        //meoda pomocnicza:
-        private IActionResult HandleErrorResult(Result result)
-        {
-            return result.ErrorType switch
-            {
-                ResultErrorType.NotFound => NotFound(new { message = result.Error }),
-                ResultErrorType.Validation => BadRequest(new { message = result.Error }),
-                ResultErrorType.Conflict => Conflict(new { message = result.Error }),
-                _ => StatusCode(500, new { message = "Krytyczny błąd serwera." })
-            };
         }
     }
 }
