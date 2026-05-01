@@ -44,7 +44,7 @@ namespace FleetManager.Services
                     .Where(f => f.VehicleId == vehicleId && f.Date > baselineDate)
                     .SumAsync(f => f.LitersAdded, ct);
 
-                // Zderzenie danych ze strategiami
+                // analiza danego typu przegladu
                 var status = _evaluationService.EvaluateVehicleMaintenance(
                     vehicle,
                     type,
