@@ -4,6 +4,7 @@ using FleetManager.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FleetManager.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260426230127_DropTelemetryAndFuelStateAddVehicleStatus")]
+    partial class DropTelemetryAndFuelStateAddVehicleStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -106,21 +109,16 @@ namespace FleetManager.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("DefaultIntervalDays")
+                    b.Property<int>("DefaultIntervalDays")
                         .HasColumnType("int");
 
-                    b.Property<int?>("DefaultIntervalOdometer")
+                    b.Property<int>("DefaultIntervalOdometer")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
-
-                    b.Property<string>("SystemCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -132,30 +130,21 @@ namespace FleetManager.Migrations
                             Id = 1,
                             DefaultIntervalDays = 365,
                             DefaultIntervalOdometer = 15000,
-                            Name = "Wymiana Oleju",
-                            SystemCode = "OIL_CHANGE"
+                            Name = "Wymiana Oleju"
                         },
                         new
                         {
                             Id = 2,
                             DefaultIntervalDays = 365,
-                            Name = "Przegląd Rejestracyjny",
-                            SystemCode = "LEGAL_INSPECTION"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            DefaultIntervalOdometer = 30000,
-                            Name = "Wymiana Klocków Hamulcowych",
-                            SystemCode = "BRAKE_PADS"
+                            DefaultIntervalOdometer = 0,
+                            Name = "Przegląd Rejestracyjny"
                         },
                         new
                         {
                             Id = 99,
                             DefaultIntervalDays = 0,
                             DefaultIntervalOdometer = 0,
-                            Name = "Inne / Naprawa dorazna",
-                            SystemCode = "OTHER"
+                            Name = "Inne"
                         });
                 });
 
@@ -173,9 +162,6 @@ namespace FleetManager.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<double>("FuelConsumption")
-                        .HasColumnType("double");
 
                     b.Property<double>("FuelTankCapacity")
                         .HasColumnType("double");

@@ -9,7 +9,7 @@
         public int OdometerReading { get; set; }
 
         public double LitersAdded { get; set; }
-        public double TotalCost { get; set; }
+        public double Cost { get; set; }
 
         public DateTime Date { get; set; }
 

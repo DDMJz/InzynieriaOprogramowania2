@@ -9,7 +9,7 @@
         public string Model { get; set; } = string.Empty;
         public int Year { get; set; }
         public int OdometerReading { get; set; }
-        public double CurrentFuelLevel { get; set; }
+        public string Status { get; set; } = string.Empty;
         public byte[] RowVersion { get; set; } = Array.Empty<byte>(); //potrzebne dla VehicleUpdateDto
     }
 }

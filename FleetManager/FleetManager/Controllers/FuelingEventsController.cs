@@ -1,21 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FleetManager.Data;
-using FleetManager.Models;
 using FleetManager.DTOs;
+using FleetManager.Common.Results;
 
 namespace FleetManager.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public class FuelingEventsController : ControllerBase
+// Kontroler REST: zarządzanie zdarzeniami tankowania
+[Route("api/[controller]")]
+[ApiController]
+public class FuelingEventsController : ApiBaseController
     {
         private readonly AppDbContext _context;
+        private readonly Services.IFuelingService _fuelingService;
 
-        public FuelingEventsController(AppDbContext context)
+        public FuelingEventsController(AppDbContext context, Services.IFuelingService fuelingService)
         {
             _context = context;
+            _fuelingService = fuelingService;
         }
 
         // GET: api/FuelingEvents/Vehicle/{vehicleId}
@@ -32,7 +34,7 @@ namespace FleetManager.Controllers
                     VehicleId = f.VehicleId,
                     OdometerReading = f.OdometerReading,
                     LitersAdded = f.LitersAdded,
-                    TotalCost = f.TotalCost,
+                    Cost = f.Cost,
                     Date = f.Date,
                     RowVersion = f.RowVersion
                 })
@@ -54,85 +56,51 @@ namespace FleetManager.Controllers
                     VehicleId = f.VehicleId, 
                     OdometerReading = f.OdometerReading,
                     LitersAdded = f.LitersAdded,
-                    TotalCost = f.TotalCost,
-                    Date = f.Date
+                    Cost = f.Cost,
+                    Date = f.Date,
+                    RowVersion = f.RowVersion
                 })
                 .FirstOrDefaultAsync(ct);
 
             if (dto == null)
             {
-                return NotFound();
+                return NotFound(new { message = $"Nie znaleziono tankowania o ID {id}." });
             }
-            
+            // zwraca DTO ze zdarzeniem tankowania
             return Ok(dto);
         }
 
         // POST: api/FuelingEvents
         //dodanie nowego tankowania
+        // Deleguje logikę tworzenia tankowania do serwisu biznesowego
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(FuelingEventCreatedResponseDto))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]//to jest niestandardowe(niegodne z domyslna konwencja)
         public async Task<IActionResult> PostFuelingEvent(FuelingEventCreateDto dto, CancellationToken ct)
         {
-            var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == dto.VehicleId, ct);
-
-            if (vehicle == null)
+            var result = await _fuelingService.CreateFuelingAsync(dto, ct);
+            
+            if (!result.IsSuccess)
             {
-                return NotFound(new { message = $"Pojazd o ID {dto.VehicleId} nie istnieje." });
+                return HandleErrorResult(result);
             }
 
-            if (dto.OdometerReading < vehicle.OdometerReading)
-            {
-                return BadRequest(new
-                {
-                    message = "Blad licznika.",
-                    details = $"Podany przebieg ({dto.OdometerReading}) jest mniejszy niz aktualny przebieg pojazdu ({vehicle.OdometerReading})."
-                });
-            }
-
-            var fuelingEvent = new FuelingEvent
-            {
-                VehicleId = dto.VehicleId,
-                OdometerReading = dto.OdometerReading,
-                LitersAdded = dto.LitersAdded,
-                TotalCost = dto.TotalCost,
-                Date = dto.Date
-            };
-
-            // Aktualizacja stanu pojazdu (Synchronizacja danych)
-            vehicle.OdometerReading = dto.OdometerReading;
-            vehicle.CurrentFuelLevel += dto.LitersAdded;
-
-            _context.FuelingEvents.Add(fuelingEvent);
-
-            await _context.SaveChangesAsync(ct);
-
-            var responseDto = new FuelingEventCreatedResponseDto { Id = fuelingEvent.Id };
-            return CreatedAtAction(nameof(GetFuelingEvent), new { id = fuelingEvent.Id }, responseDto);
+            var responseDto = new FuelingEventCreatedResponseDto { Id = result.Value!.Id };
+            return CreatedAtAction(nameof(GetFuelingEvent), new { id = result.Value.Id }, responseDto);
         }
 
         // DELETE: api/FuelingEvents/{id}
         //usuwanie tankowania
+        // Deleguje usuwanie tankowania do serwisu
         [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteFuelingEvent(int id, CancellationToken ct)
         {
-            var fuelingEvent = await _context.FuelingEvents.FindAsync(new object[] { id }, ct);
+            var result = await _fuelingService.DeleteFuelingAsync(id, ct);
 
-            if (fuelingEvent == null)
-            {
-                return NotFound();
-            }
-
-            _context.FuelingEvents.Remove(fuelingEvent);
-
-            await _context.SaveChangesAsync(ct);
+            return result.IsSuccess ? NoContent() : HandleErrorResult(result);
 
             return NoContent();
         }
-
-
-
     }
 }

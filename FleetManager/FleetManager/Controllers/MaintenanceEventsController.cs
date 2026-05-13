@@ -1,21 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FleetManager.Data;
-using FleetManager.Models;
 using FleetManager.DTOs;
+using FleetManager.Common.Results;
 
 namespace FleetManager.Controllers
 {
+    // Kontroler REST: zarządzanie zdarzeniami serwisowymi (eksploatacja)
     [Route("api/[controller]")]
     [ApiController]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public class MaintenanceEventsController : ControllerBase
+    public class MaintenanceEventsController : ApiBaseController
     {
         private readonly AppDbContext _context;
+        private readonly Services.IMaintenanceService _maintenanceService;
 
-        public MaintenanceEventsController(AppDbContext context)
+        public MaintenanceEventsController(AppDbContext context, Services.IMaintenanceService maintenanceService)
         {
             _context = context;
+            _maintenanceService = maintenanceService;
         }
 
         // GET: api/MaintenanceEvents/Vehicle/{vehicleId}
@@ -64,77 +66,39 @@ namespace FleetManager.Controllers
 
             if (dto == null)
             {
-                return NotFound();
+                return NotFound(new { message = $"Nie znaleziono zdarzenia serwisowego o ID {id}." });
             }
-
+            // zwraca DTO ze zdarzeniem serwisowym
             return Ok(dto);
         }
 
         // POST: api/MaintenanceEvents
+        // Deleguje tworzenie zdarzenia serwisowego do serwisu biznesowego
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(MaintenanceEventCreatedResponseDto))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]//to jest niestandardowe(niegodne z globalna konwencja w FleetApiConventions.cs )
         public async Task<IActionResult> PostMaintenanceEvent(MaintenanceEventCreateDto dto, CancellationToken ct)
         {
-            var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == dto.VehicleId, ct);
-            if (vehicle == null)
-            {
-                return NotFound(new { message = $"Pojazd o ID {dto.VehicleId} nie istnieje." });
-            }
+            var result = await _maintenanceService.CreateMaintenanceAsync(dto, ct);
 
-            var typeExists = await _context.MaintenanceTypes.AnyAsync(t => t.Id == dto.MaintenanceTypeId, ct);
-            if (!typeExists)
-            {
-                return BadRequest(new { message = $"Typ naprawy o ID {dto.MaintenanceTypeId} nie istnieje w bazie." });
-            }
+            if (!result.IsSuccess) return HandleErrorResult(result);
 
-            if (dto.OdometerReading < vehicle.OdometerReading)
-            {
-                return BadRequest(new
-                {
-                    message = "Blad licznika.",
-                    details = $"Podany przebieg ({dto.OdometerReading}) jest mniejszy niz aktualny przebieg pojazdu ({vehicle.OdometerReading})."
-                });
-            }
+            var responseDto = new MaintenanceEventCreatedResponseDto { Id = result.Value!.Id };
 
-            var maintenanceEvent = new MaintenanceEvent
-            {
-                VehicleId = dto.VehicleId,
-                MaintenanceTypeId = dto.MaintenanceTypeId,
-                OdometerReading = dto.OdometerReading,
-                TotalCost = dto.TotalCost,
-                Description = dto.Description,
-                Date = dto.Date
-            };
-
-            vehicle.OdometerReading = dto.OdometerReading;
-
-            _context.MaintenanceEvents.Add(maintenanceEvent);
-
-            await _context.SaveChangesAsync(ct);
-
-            
-            var responseDto = new MaintenanceEventCreatedResponseDto { Id = maintenanceEvent.Id };
-
-            return CreatedAtAction(nameof(GetMaintenanceEvent), new { id = maintenanceEvent.Id }, responseDto);
+            return CreatedAtAction(nameof(GetMaintenanceEvent), new { id = result.Value.Id }, responseDto);
         }
 
         // DELETE: api/MaintenanceEvents/{id}
+        // Deleguje usuwanie zdarzenia serwisowego 
         [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteMaintenanceEvent(int id, CancellationToken ct)
         {
-            var mEvent = await _context.MaintenanceEvents.FindAsync(new object[] { id }, ct);
-            if (mEvent == null)
-            {
-                return NotFound();
-            }
-            _context.MaintenanceEvents.Remove(mEvent);
-            await _context.SaveChangesAsync(ct);
+            var result = await _maintenanceService.DeleteMaintenanceAsync(id, ct);
 
-            return NoContent();
+            return result.IsSuccess ? NoContent() : HandleErrorResult(result);
         }
+            
     }
 
 }
