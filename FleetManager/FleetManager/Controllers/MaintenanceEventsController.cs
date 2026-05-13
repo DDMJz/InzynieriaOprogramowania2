@@ -116,7 +116,7 @@ namespace FleetManager.Controllers
             
             var responseDto = new MaintenanceEventCreatedResponseDto { Id = maintenanceEvent.Id };
 
-            return CreatedAtAction(nameof(GetMaintenanceEvent), new { vehicleId = maintenanceEvent.VehicleId }, responseDto);
+            return CreatedAtAction(nameof(GetMaintenanceEvent), new { id = maintenanceEvent.Id }, responseDto);
         }
 
         // DELETE: api/MaintenanceEvents/{id}
