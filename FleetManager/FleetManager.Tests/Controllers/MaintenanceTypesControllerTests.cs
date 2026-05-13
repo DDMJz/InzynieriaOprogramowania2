@@ -23,15 +23,16 @@ public class MaintenanceTypesControllerTests : IClassFixture<FleetManagerFactory
     }
 
     [Fact]
-    public async Task GetTypes_ReturnsAllThreeSeededTypes()
+    public async Task GetTypes_ReturnsAllFourSeededTypes()
     {
         var response = await _client.GetAsync("/api/maintenancetypes");
         var types = await response.Content.ReadFromJsonAsync<List<MaintenanceType>>();
 
         Assert.NotNull(types);
-        Assert.Equal(3, types.Count);
+        Assert.Equal(4, types.Count);
         Assert.Contains(types, t => t.Name == "Wymiana Oleju" && t.DefaultIntervalOdometer == 15000);
         Assert.Contains(types, t => t.Name == "Przegląd Rejestracyjny" && t.DefaultIntervalDays == 365);
-        Assert.Contains(types, t => t.Name == "Inne" && t.DefaultIntervalOdometer == 0 && t.DefaultIntervalDays == 0);
+        Assert.Contains(types, t => t.Name == "Wymiana Klocków Hamulcowych" && t.DefaultIntervalOdometer == 30000);
+        Assert.Contains(types, t => t.Name == "Inne / Naprawa dorazna" && t.DefaultIntervalOdometer == 0 && t.DefaultIntervalDays == 0);
     }
 }

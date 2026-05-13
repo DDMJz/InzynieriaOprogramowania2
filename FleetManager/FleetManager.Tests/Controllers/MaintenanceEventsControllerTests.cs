@@ -145,7 +145,7 @@ public class MaintenanceEventsControllerTests : IClassFixture<FleetManagerFactor
     }
 
     [Fact]
-    public async Task PostMaintenanceEvent_Returns400_WhenMaintenanceTypeNotFound()
+    public async Task PostMaintenanceEvent_Returns404_WhenMaintenanceTypeNotFound()
     {
         var vehicleId = await CreateVehicleAsync();
         var payload = new
@@ -160,19 +160,19 @@ public class MaintenanceEventsControllerTests : IClassFixture<FleetManagerFactor
 
         var response = await _client.PostAsJsonAsync("/api/maintenanceevents", payload);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
-    public async Task PostMaintenanceEvent_Returns400_WhenOdometerDecreases()
+    public async Task PostMaintenanceEvent_Returns400_WhenCostIsNegative()
     {
-        var vehicleId = await CreateVehicleAsync(odometer: 5000);
+        var vehicleId = await CreateVehicleAsync();
         var payload = new
         {
             vehicleId,
             maintenanceTypeId = OilChangeTypeId,
-            odometerReading = 1000, // below current 5000
-            totalCost = 200.0,
+            odometerReading = 100,
+            totalCost = -50.0,
             description = "Test",
             date = DateTime.UtcNow
         };

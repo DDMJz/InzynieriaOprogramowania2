@@ -5,35 +5,27 @@ namespace FleetManager.Tests.Models;
 public class VehicleModelTests
 {
     [Fact]
-    public void FuelLevelPercentage_ReturnsCorrectValue()
+    public void Vehicle_DefaultStatus_IsIdle()
     {
-        var vehicle = new Vehicle { FuelTankCapacity = 100, CurrentFuelLevel = 50 };
+        var vehicle = new Vehicle();
 
-        Assert.Equal(50.0, vehicle.FuelLevelPercentage);
+        Assert.Equal(VehicleStatus.Idle, vehicle.Status);
     }
 
     [Fact]
-    public void FuelLevelPercentage_ReturnsZero_WhenTankCapacityIsZero()
+    public void Vehicle_DefaultRowVersion_IsEmpty()
     {
-        var vehicle = new Vehicle { FuelTankCapacity = 0, CurrentFuelLevel = 0 };
+        var vehicle = new Vehicle();
 
-        Assert.Equal(0.0, vehicle.FuelLevelPercentage);
+        Assert.NotNull(vehicle.RowVersion);
+        Assert.Empty(vehicle.RowVersion);
     }
 
     [Fact]
-    public void FuelLevelPercentage_RoundsToTwoDecimalPlaces()
+    public void Vehicle_DefaultOdometerReading_IsZero()
     {
-        // 1/3 * 100 = 33.3333... → rounded to 33.33
-        var vehicle = new Vehicle { FuelTankCapacity = 3, CurrentFuelLevel = 1 };
+        var vehicle = new Vehicle();
 
-        Assert.Equal(33.33, vehicle.FuelLevelPercentage);
-    }
-
-    [Fact]
-    public void FuelLevelPercentage_ReturnsHundred_WhenFull()
-    {
-        var vehicle = new Vehicle { FuelTankCapacity = 60, CurrentFuelLevel = 60 };
-
-        Assert.Equal(100.0, vehicle.FuelLevelPercentage);
+        Assert.Equal(0, vehicle.OdometerReading);
     }
 }

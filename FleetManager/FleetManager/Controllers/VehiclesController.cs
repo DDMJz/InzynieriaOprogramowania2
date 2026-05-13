@@ -129,6 +129,7 @@ namespace FleetManager.Controllers
                 {
                     return Conflict(result.Value);// Wydobycie ładunku błędu i wysłanie go w odpowiedzi JSON
                 }
+                return HandleErrorResult(result);
             }
             return NoContent();
         }

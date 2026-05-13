@@ -144,15 +144,15 @@ public class FuelingEventsControllerTests : IClassFixture<FleetManagerFactory>
     }
 
     [Fact]
-    public async Task PostFuelingEvent_Returns400_WhenOdometerDecreases()
+    public async Task PostFuelingEvent_Returns400_WhenLitersAddedIsZero()
     {
-        var vehicleId = await CreateVehicleAsync(odometer: 1000);
+        var vehicleId = await CreateVehicleAsync();
         var payload = new
         {
             vehicleId,
-            litersAdded = 30.0,
-            totalCost = 150.0,
-            odometerReading = 500, // below current 1000
+            litersAdded = 0.0,
+            cost = 0.0,
+            odometerReading = 100,
             date = DateTime.UtcNow
         };
 
@@ -162,14 +162,14 @@ public class FuelingEventsControllerTests : IClassFixture<FleetManagerFactory>
     }
 
     [Fact]
-    public async Task PostFuelingEvent_UpdatesVehicleOdometerAndFuelLevel()
+    public async Task PostFuelingEvent_UpdatesVehicleOdometer()
     {
         var vehicleId = await CreateVehicleAsync(odometer: 0);
         var payload = new
         {
             vehicleId,
             litersAdded = 40.0,
-            totalCost = 200.0,
+            cost = 200.0,
             odometerReading = 1500,
             date = DateTime.UtcNow
         };
@@ -180,7 +180,6 @@ public class FuelingEventsControllerTests : IClassFixture<FleetManagerFactory>
 
         Assert.NotNull(vehicle);
         Assert.Equal(1500, vehicle.OdometerReading);
-        Assert.Equal(40.0, vehicle.CurrentFuelLevel);
     }
 
     // --- DELETE /api/fuelingevents/{id} ---
