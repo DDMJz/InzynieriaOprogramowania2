@@ -118,6 +118,9 @@ namespace FleetManager.Services
 
             vehicle.Status = VehicleStatus.InTransit;
             await _context.SaveChangesAsync(ct);
+
+            _logger.LogInformation("Rozpoczęto symulację jazdy (zmiana stanu nas 'InTransit') dla pojazd o ID {VehicleId}.", id);
+
             return Result.Success();
         }
 
@@ -133,6 +136,9 @@ namespace FleetManager.Services
 
             vehicle.Status = VehicleStatus.Idle;
             await _context.SaveChangesAsync(ct);
+
+            _logger.LogInformation("Zakończono symulację jazdy (zmiana stanu na 'Idle') dla pojazd o ID {VehicleId}.", id);
+
             return Result.Success();
         }
 
