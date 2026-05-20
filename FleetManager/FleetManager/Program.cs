@@ -29,6 +29,7 @@ namespace FleetManager
             builder.Services.AddOpenApi();
 
             builder.Services.AddScoped<FleetManager.Services.IFuelingService, FleetManager.Services.FuelingService>();
+            builder.Services.AddScoped<FleetManager.Services.IVehicleService, FleetManager.Services.VehicleService>();
             builder.Services.AddScoped<FleetManager.Services.IMaintenanceService, FleetManager.Services.MaintenanceService>();
             builder.Services.AddScoped<IMaintenanceEvaluationService, MaintenanceEvaluationService>();
             builder.Services.AddScoped<IVehicleMaintenanceStatusService, VehicleMaintenanceStatusService>();
