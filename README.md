@@ -2,6 +2,17 @@
 
 ## Opis
 Repozytorium zawiera aplikację do zarządzania flotą aut napisaną w C#, z interfejsem webowym w Razor oraz bazą danych MySQL
+## Obsługa Testów
+
+Aby uruchomić testy w katalogu FleetManager odpalamy polecenie:
+```
+dotnet test FleetManager.Tests/FleetManager.Tests.csproj
+```
+Pipeline:
+```
+dotnet test FleetManager.Tests/FleetManager.Tests.csproj --collect:"XPlat Code Coverage” --results-directory ./TestResults
+```
+
 ## Obsługa Git
 
 ### Klonowanie repozytorium
