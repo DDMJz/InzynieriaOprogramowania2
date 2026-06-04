@@ -2,6 +2,23 @@
 
 ## Opis
 Repozytorium zawiera aplikację do zarządzania flotą aut napisaną w C#, z interfejsem webowym w Razor oraz bazą danych MySQL
+## Uruchomienie aplikacji
+
+### Backend (C# / ASP.NET)
+
+W katalogu `FleetManager/FleetManager`:
+```bash
+dotnet run
+```
+
+### Frontend (Vue 3 / Vite)
+
+W katalogu `Fleet-ui`:
+```bash
+npm install
+npm run dev
+```
+
 ## Obsługa Testów
 
 Aby uruchomić testy w katalogu FleetManager odpalamy polecenie:
