@@ -2,6 +2,7 @@ using FleetManager.Services;
 using FleetManager.Strategies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 [assembly: ApiConventionType(typeof(FleetManager.Conventions.FleetApiConventions))]
 
@@ -46,6 +47,24 @@ namespace FleetManager
             builder.Services.AddHostedService<FleetManager.Workers.TelemetrySimulatorWorker>();
 
             var app = builder.Build();
+
+            // automatyczna aktualizacja bazy 
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var context = services.GetRequiredService<FleetManager.Data.AppDbContext>();
+                    // Wymuszenie fizycznej aktualizacji schematu bazy danych
+                    context.Database.Migrate();
+                }
+                catch (Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogCritical(ex, "KRYTYCZNE: Błąd podczas automatycznej migracji schematu bazy danych. Aplikacja nie może zostać uruchomiona.");
+                    throw; // Proces startowy przerwany
+                }
+            }
 
             if (app.Environment.IsDevelopment())
             {
