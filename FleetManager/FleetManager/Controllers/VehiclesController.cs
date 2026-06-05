@@ -43,6 +43,8 @@ namespace FleetManager.Controllers
                    Model = v.Model,
                    Year = v.Year,
                    OdometerReading = v.OdometerReading,
+                   FuelTankCapacity = v.FuelTankCapacity, 
+                   FuelConsumption = v.FuelConsumption,
                    Status = v.Status.ToString(),
                    RowVersion = v.RowVersion //potrzebne dla put
                })
@@ -66,6 +68,8 @@ namespace FleetManager.Controllers
                     Model = v.Model,
                     Year = v.Year,
                     OdometerReading = v.OdometerReading,
+                    FuelTankCapacity = v.FuelTankCapacity, 
+                    FuelConsumption = v.FuelConsumption,
                     Status = v.Status.ToString(),
                     RowVersion = v.RowVersion //potrzebne dla put
                 })

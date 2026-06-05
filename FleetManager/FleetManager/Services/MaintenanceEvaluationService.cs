@@ -19,7 +19,7 @@ namespace FleetManager.Services
             MaintenanceEvent? lastEvent,
             double fuelConsumedSinceLast)
         {
-            var context = new MaintenanceEvaluationContext(
+            var baseContext = new MaintenanceEvaluationContext(
                 Vehicle: vehicle,
                 MaintenanceType: maintenanceType,
                 LastMaintenanceEvent: lastEvent,
@@ -28,7 +28,10 @@ namespace FleetManager.Services
                 EffectiveIntervalDays: maintenanceType.DefaultIntervalDays
             );
 
-            // typowanie strategi ktora przetworzy ten MaintenanceType
+            //  zmniejszanie interwalów domyslnych w razie spalania nadmiernego 
+            var finalContext = ApplySevereUsagePenalty(baseContext);
+
+            // typowanie strategii ktora przetworzy ten MaintenanceType
             var strategy = _strategies.FirstOrDefault(s => s.CanHandle(maintenanceType));
 
             if (strategy == null)
@@ -36,7 +39,38 @@ namespace FleetManager.Services
                 throw new NotSupportedException($"KRYTYCZNE: Brak zarejestrowanej strategii obsługującej typ przeglądu: {maintenanceType.SystemCode}");
             }
 
-            return strategy.Evaluate(context);
+            return strategy.Evaluate(finalContext);
         }
+
+        private MaintenanceEvaluationContext ApplySevereUsagePenalty(MaintenanceEvaluationContext context)
+        {
+            const double SevereUsageFuelThreshold = 1.20;   // prog spalania - 120%
+            const double IntervalReductionPenalty = 0.70;   // redukcja interwłow - 70%
+
+            if (context.Vehicle.FuelConsumption <= 0)
+            {
+                //throw new InvalidOperationException($"KRYTYCZNE: Wartość zakładanego spalania w bazie dla pojazdu o ID {context.Vehicle.Id} jest niemożliwa: {context.Vehicle.FuelConsumption}");
+            }
+
+            if (context.FuelConsumptionSinceLastMaintenance < (context.Vehicle.FuelConsumption * SevereUsageFuelThreshold))
+            {
+                return context; // jezeli spalanie nie przekracza 120% normy
+            }
+
+            int? newKmInterval = context.EffectiveIntervalOdometer;
+            int? newDaysInterval = context.EffectiveIntervalDays;
+
+            if (newKmInterval.HasValue) newKmInterval = (int)(newKmInterval.Value * IntervalReductionPenalty);
+            if (newDaysInterval.HasValue) newDaysInterval = (int)(newDaysInterval.Value * IntervalReductionPenalty);
+
+            // mutowanie niemutowalnego obiektu typu record
+            return context with
+            {
+                EffectiveIntervalOdometer = newKmInterval,
+                EffectiveIntervalDays = newDaysInterval,
+                penaltyApplied = true
+            };
+        }
+
     }
 }

@@ -31,6 +31,9 @@ namespace FleetManager.Services
                 LicensePlate = dto.LicensePlate,
                 Brand = dto.Brand,
                 Model = dto.Model,
+                Year = dto.Year,
+                FuelTankCapacity = dto.FuelTankCapacity, 
+                FuelConsumption = dto.FuelConsumption,
                 OdometerReading = dto.OdometerReading,
                 Status = VehicleStatus.Idle
             };
@@ -55,6 +58,8 @@ namespace FleetManager.Services
             vehicleInDb.Brand = dto.Brand;
             vehicleInDb.Model = dto.Model;
             vehicleInDb.Year = dto.Year;
+            vehicleInDb.FuelTankCapacity = dto.FuelTankCapacity;
+            vehicleInDb.FuelConsumption = dto.FuelConsumption;
 
             try
             {
@@ -80,6 +85,8 @@ namespace FleetManager.Services
                     Brand = vehicleInDb.Brand,
                     Model = vehicleInDb.Model,
                     Year = vehicleInDb.Year,
+                    FuelTankCapacity = vehicleInDb.FuelTankCapacity,
+                    FuelConsumption = vehicleInDb.FuelConsumption,
                     RowVersion = vehicleInDb.RowVersion
                 };
 
