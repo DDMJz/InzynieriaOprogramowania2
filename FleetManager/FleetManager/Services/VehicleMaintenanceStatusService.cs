@@ -32,6 +32,12 @@ namespace FleetManager.Services
             // przechodzenie w petli po wszystkich typach
             foreach (var type in maintenanceTypes)
             {
+                // ominiecie typow bez wprowadzonych limitow (w tej chwili tylko "OTHER")
+                if (!type.DefaultIntervalOdometer.HasValue && !type.DefaultIntervalDays.HasValue) 
+                { 
+                    continue; 
+                }
+
                 var lastEvent = await _context.MaintenanceEvents
                     .Where(m => m.VehicleId == vehicleId && m.MaintenanceTypeId == type.Id)
                     .OrderByDescending(m => m.Date)
