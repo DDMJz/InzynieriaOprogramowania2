@@ -25,6 +25,9 @@ public class VehiclesControllerTests : IClassFixture<FleetManagerFactory>
             licensePlate = "TST001",
             brand = "TestBrand",
             model = "TestModel",
+            year = 2020,
+            fuelTankCapacity = 50.0,
+            fuelConsumption = 8.0,
             odometerReading = 0
         };
         var response = await _client.PostAsJsonAsync("/api/vehicles", payload);
@@ -81,7 +84,7 @@ public class VehiclesControllerTests : IClassFixture<FleetManagerFactory>
     [Fact]
     public async Task PostVehicle_Returns201_WithValidData()
     {
-        var payload = new { vin = NewVin(), licensePlate = "NEW001", brand = "BMW", model = "X5", odometerReading = 1000 };
+        var payload = new { vin = NewVin(), licensePlate = "NEW001", brand = "BMW", model = "X5", year = 2021, fuelTankCapacity = 60.0, fuelConsumption = 7.5, odometerReading = 1000 };
 
         var response = await _client.PostAsJsonAsync("/api/vehicles", payload);
 
@@ -128,6 +131,8 @@ public class VehiclesControllerTests : IClassFixture<FleetManagerFactory>
             brand = "Honda",
             model = "Civic",
             year = 2022,
+            fuelTankCapacity = 50.0,
+            fuelConsumption = 8.0,
             rowVersion = existing!.RowVersion
         };
         var response = await _client.PutAsJsonAsync($"/api/vehicles/{id}", payload);
@@ -138,7 +143,7 @@ public class VehiclesControllerTests : IClassFixture<FleetManagerFactory>
     [Fact]
     public async Task PutVehicle_Returns404_WhenNotFound()
     {
-        var payload = new { licensePlate = "NF001", brand = "Honda", model = "Civic", year = 2022, rowVersion = Array.Empty<byte>() };
+        var payload = new { licensePlate = "NF001", brand = "Honda", model = "Civic", year = 2022, fuelTankCapacity = 50.0, fuelConsumption = 8.0, rowVersion = Array.Empty<byte>() };
 
         var response = await _client.PutAsJsonAsync("/api/vehicles/999999", payload);
 
@@ -156,6 +161,8 @@ public class VehiclesControllerTests : IClassFixture<FleetManagerFactory>
             brand = "Honda",
             model = "Civic",
             year = 2022,
+            fuelTankCapacity = 50.0,
+            fuelConsumption = 8.0,
             rowVersion = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF }
         };
 
@@ -235,7 +242,7 @@ public class VehiclesControllerTests : IClassFixture<FleetManagerFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var statuses = await response.Content.ReadFromJsonAsync<List<VehicleMaintenanceStatusDto>>();
         Assert.NotNull(statuses);
-        Assert.Equal(4, statuses.Count); // 4 seeded MaintenanceTypes
+        Assert.Equal(3, statuses.Count); // 3 types with intervals (OTHER is skipped — no interval defined)
     }
 
     [Fact]

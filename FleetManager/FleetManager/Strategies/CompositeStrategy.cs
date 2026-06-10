@@ -32,7 +32,13 @@ namespace FleetManager.Strategies
 
             // ustalana wiadomosc - prog czasu uprzywilejowany jezeli oba na tym smym poziomie
             string finalMessage = finalLevel == timeResult.Level ? timeResult.Message : distanceResult.Message;
-            
+
+            bool severeFuel = context.FuelConsumptionSinceLastMaintenance > 0 &&
+                              context.Vehicle.FuelConsumption > 0 &&
+                              context.FuelConsumptionSinceLastMaintenance > context.Vehicle.FuelConsumption * 1.2;
+            if (severeFuel)
+                finalMessage += " Spalanie powyżej normy.";
+
             return new MaintenanceEvaluationResult(
                 Level: finalLevel,
                 Message: finalMessage,
