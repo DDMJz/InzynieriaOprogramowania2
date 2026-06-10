@@ -31,6 +31,13 @@ namespace FleetManager.Services
                 return Result<FuelingEvent>.Validation("Ilość dolewanych paliwa musi być większa niż 0.");
             }
 
+            if (vehicle.FuelTankCapacity > 0 && dto.LitersAdded > vehicle.FuelTankCapacity)
+            {
+                return Result<FuelingEvent>.Validation(
+                    $"Próba zatankowania {dto.LitersAdded} L przekracza maksymalną pojemność baku tego pojazdu ({vehicle.FuelTankCapacity} L)."
+                );
+            }
+
             var fuelingEvent = new FuelingEvent
             {
                 VehicleId = dto.VehicleId,
