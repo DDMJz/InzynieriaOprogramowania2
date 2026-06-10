@@ -18,6 +18,7 @@ namespace FleetManager.Models
         //------------------modul tankowania 
         public double FuelTankCapacity { get; set; }
 
+        // oczekiwane spalanie na 100 km
         public double FuelConsumption { get; set; }
 
 

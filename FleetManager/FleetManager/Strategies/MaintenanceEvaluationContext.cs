@@ -10,6 +10,8 @@ namespace FleetManager.Strategies
         double FuelConsumptionSinceLastMaintenance,
 
         int? EffectiveIntervalOdometer,
-        int? EffectiveIntervalDays
+        int? EffectiveIntervalDays,
+
+        bool penaltyApplied = false
     );
 }

@@ -24,14 +24,40 @@ namespace FleetManager.Strategies
             int daysRemaining = defaultDays - daysPassed;
 
             string name = context.MaintenanceType.Name;
+            MaintenanceStatusLevel finalLevel;
+            string finalMessage;
+            DateTime predictedDate = DateTime.UtcNow.AddDays(daysRemaining);
 
             if (daysRemaining <= 0)
-                return new MaintenanceEvaluationResult(MaintenanceStatusLevel.Critical, $"KRYTYCZNE [{name}]: Przekroczono limit czasu o {Math.Abs(daysRemaining)} dni.", null, daysRemaining, null);
+            {
+                finalLevel = MaintenanceStatusLevel.Critical;
+                finalMessage = $"KRYTYCZNE [{name}]: Przekroczono limit czasu o {Math.Abs(daysRemaining)} dni.";
+                predictedDate = default; // Brak predykcji, wymiana natychmiastowa
+            }
+            else if (daysRemaining <= WarningDaysThreshold)
+            {
+                finalLevel = MaintenanceStatusLevel.Warning;
+                finalMessage = $"OSTRZEŻENIE [{name}]: Zbliża się termin. Pozostało {daysRemaining} dni.";
+            }
+            else
+            {
+                finalLevel = MaintenanceStatusLevel.Ok;
+                finalMessage = $"OK [{name}]: Status prawidłowy.";
+            }
 
-            if (daysRemaining <= WarningDaysThreshold)
-                return new MaintenanceEvaluationResult(MaintenanceStatusLevel.Warning, $"OSTRZEŻENIE [{name}]: Zbliża się termin. Pozostało {daysRemaining} dni.", null, daysRemaining, DateTime.UtcNow.AddDays(daysRemaining));
+            if (context.penaltyApplied)
+            {
+                finalMessage += " (Spalanie powyżej normy - interwał skrócony.)";
+            }
 
-            return new MaintenanceEvaluationResult(MaintenanceStatusLevel.Ok, $"OK [{name}]: Status prawidłowy.", null, daysRemaining, DateTime.UtcNow.AddDays(daysRemaining));
+            return new MaintenanceEvaluationResult(
+                Level: finalLevel,
+                Message: finalMessage,
+                KilometersRemaining: null,
+                DaysRemaining: daysRemaining,
+                PredictedMaintenanceDate: daysRemaining <= 0 ? null : predictedDate
+            );
+                       
         }
     }
 }

@@ -77,8 +77,8 @@ namespace FleetManager.Data
                     Id = 99,
                     SystemCode = "OTHER",
                     Name = "Inne / Naprawa dorazna",
-                    DefaultIntervalOdometer = 0,
-                    DefaultIntervalDays = 0
+                    DefaultIntervalOdometer = null,
+                    DefaultIntervalDays = null
                 }
             );
         }

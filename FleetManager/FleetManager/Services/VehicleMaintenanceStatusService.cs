@@ -32,6 +32,12 @@ namespace FleetManager.Services
             // przechodzenie w petli po wszystkich typach
             foreach (var type in maintenanceTypes)
             {
+                // ominiecie typow bez wprowadzonych limitow (w tej chwili tylko "OTHER")
+                if (!type.DefaultIntervalOdometer.HasValue && !type.DefaultIntervalDays.HasValue) 
+                { 
+                    continue; 
+                }
+
                 var lastEvent = await _context.MaintenanceEvents
                     .Where(m => m.VehicleId == vehicleId && m.MaintenanceTypeId == type.Id)
                     .OrderByDescending(m => m.Date)
@@ -42,14 +48,24 @@ namespace FleetManager.Services
                 // paliwo dolane od poprzedniego serwisu tego typu
                 double fuelConsumed = await _context.FuelingEvents
                     .Where(f => f.VehicleId == vehicleId && f.Date > baselineDate)
-                    .SumAsync(f => f.LitersAdded, ct);
+                    .SumAsync(f => (double?)f.LitersAdded, ct) ?? 0;
+
+                // dystans przejechany od od poprzedniego serwisu tego typu
+                int baselineOdometer = lastEvent?.OdometerReading ?? 0;
+                int distanceDrivenSinceBaseline = vehicle.OdometerReading - baselineOdometer;
+                if (distanceDrivenSinceBaseline <= 0)
+                {
+                    distanceDrivenSinceBaseline = 1;
+                }
+                //spalanie na 100km
+                double calculatedAverageConsumption = (fuelConsumed / distanceDrivenSinceBaseline) *100;
 
                 // analiza danego typu przegladu
                 var status = _evaluationService.EvaluateVehicleMaintenance(
                     vehicle,
                     type,
                     lastEvent,
-                    fuelConsumed
+                    calculatedAverageConsumption
                 );
 
                 var dto = new VehicleMaintenanceStatusDto(

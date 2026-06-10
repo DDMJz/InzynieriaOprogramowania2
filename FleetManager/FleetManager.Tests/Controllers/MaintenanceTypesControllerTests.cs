@@ -33,6 +33,6 @@ public class MaintenanceTypesControllerTests : IClassFixture<FleetManagerFactory
         Assert.Contains(types, t => t.Name == "Wymiana Oleju" && t.DefaultIntervalOdometer == 15000);
         Assert.Contains(types, t => t.Name == "Przegląd Rejestracyjny" && t.DefaultIntervalDays == 365);
         Assert.Contains(types, t => t.Name == "Wymiana Klocków Hamulcowych" && t.DefaultIntervalOdometer == 30000);
-        Assert.Contains(types, t => t.Name == "Inne / Naprawa dorazna" && t.DefaultIntervalOdometer == 0 && t.DefaultIntervalDays == 0);
+        Assert.Contains(types, t => t.Name == "Inne / Naprawa dorazna" && t.DefaultIntervalOdometer == null && t.DefaultIntervalDays == null);
     }
 }

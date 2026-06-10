@@ -13,6 +13,12 @@ namespace FleetManager.DTOs
         [Required]
         public int Year { get; set; }
         [Required]
+        [Range(1.0, 1000.0)]
+        public double FuelTankCapacity { get; set; }
+        [Required]
+        [Range(1.0, 100.0)]
+        public double FuelConsumption { get; set; }
+        [Required]
         public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     }
 }

@@ -19,7 +19,7 @@ public class FuelingEventsControllerTests : IClassFixture<FleetManagerFactory>
 
     private async Task<int> CreateVehicleAsync(int odometer = 0)
     {
-        var payload = new { vin = NewVin(), licensePlate = "F01", brand = "Brand", model = "Model", odometerReading = odometer };
+        var payload = new { vin = NewVin(), licensePlate = "F01", brand = "Brand", model = "Model", year = 2020, fuelTankCapacity = 50.0, fuelConsumption = 8.0, odometerReading = odometer };
         var resp = await _client.PostAsJsonAsync("/api/vehicles", payload);
         resp.EnsureSuccessStatusCode();
         return (await resp.Content.ReadFromJsonAsync<VehicleCreatedResponseDto>())!.Id;
