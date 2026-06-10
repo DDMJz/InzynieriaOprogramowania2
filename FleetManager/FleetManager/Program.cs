@@ -56,7 +56,10 @@ namespace FleetManager
                 {
                     var context = services.GetRequiredService<FleetManager.Data.AppDbContext>();
                     // Wymuszenie fizycznej aktualizacji schematu bazy danych
-                    context.Database.Migrate();
+                    if (context.Database.IsRelational())
+                        context.Database.Migrate();
+                    else
+                        context.Database.EnsureCreated();
                 }
                 catch (Exception ex)
                 {
