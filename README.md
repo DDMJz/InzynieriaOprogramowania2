@@ -1,7 +1,7 @@
 # InzynieriaOprogramowania2
 
 ## Opis
-Repozytorium zawiera aplikację do zarządzania flotą aut napisaną w C#, z interfejsem webowym w Razor oraz bazą danych MySQL
+Repozytorium zawiera aplikację do zarządzania flotą aut napisaną w C# w standardzie REST API, z demonem telemetrii w tle,  autonomicznym frontendem Vue 3 / Vite oraz bazą danych MySQL
 ## Uruchomienie aplikacji
 
 ### Backend (C# / ASP.NET)
