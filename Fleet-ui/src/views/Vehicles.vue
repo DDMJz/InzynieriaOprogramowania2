@@ -52,51 +52,62 @@
 
     <!-- ── Add / Edit modal ── -->
     <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
-      <div class="modal">
-        <div class="modal-title">{{ editing ? 'Edytuj pojazd' : 'Dodaj nowy pojazd' }}</div>
+        <div class="modal">
+            <div class="modal-title">{{ editing ? 'Edytuj pojazd' : 'Dodaj nowy pojazd' }}</div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Marka *</label>
-            <input v-model="form.brand" placeholder="np. Toyota" />
-          </div>
-          <div class="form-group">
-            <label>Model *</label>
-            <input v-model="form.model" placeholder="np. Corolla" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Rejestracja * (max 10 zn.)</label>
-            <input v-model="form.licensePlate" maxlength="10" placeholder="np. KI 12345" style="text-transform:uppercase" />
-          </div>
-          <div class="form-group" v-if="editing">
-            <label>Rok produkcji *</label>
-            <input v-model.number="form.year" type="number" min="1900" max="2030" placeholder="2020" />
-          </div>
-        </div>
-        <template v-if="!editing">
-          <div class="form-row">
-            <div class="form-group">
-              <label>VIN * (dokładnie 17 znaków)</label>
-              <input v-model="form.vin" maxlength="17" placeholder="1HGBH41JXMN109186" style="font-family:monospace;text-transform:uppercase" />
-              <small style="color:#9ca3af;font-size:0.75rem">Wpisano: {{ form.vin?.length ?? 0 }} / 17</small>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Marka *</label>
+                    <input v-model="form.brand" placeholder="np. Toyota" />
+                </div>
+                <div class="form-group">
+                    <label>Model *</label>
+                    <input v-model="form.model" placeholder="np. Corolla" />
+                </div>
             </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Stan licznika (km)</label>
-              <input v-model.number="form.odometerReading" type="number" min="0" placeholder="0" />
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Rejestracja * (max 10 zn.)</label>
+                    <input v-model="form.licensePlate" maxlength="10" placeholder="np. KI 12345" style="text-transform:uppercase" />
+                </div>
+                <div class="form-group" v-if="editing">
+                    <label>Rok produkcji *</label>
+                    <input v-model.number="form.year" type="number" min="1900" max="2030" placeholder="2020" />
+                </div>
             </div>
-          </div>
-        </template>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Pojemność baku (L) *</label>
+                    <input v-model.number="form.fuelTankCapacity" type="number" min="1" step="1" placeholder="np. 50" />
+                </div>
+                <div class="form-group">
+                    <label>Spalanie fabryczne (L/100km) *</label>
+                    <input v-model.number="form.fuelConsumption" type="number" min="0.1" step="0.1" placeholder="np. 7.5" />
+                </div>
+            </div>
 
-        <div v-if="formError" class="error-msg">{{ formError }}</div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" @click="showForm = false">Anuluj</button>
-          <button class="btn btn-primary" @click="submitForm" :disabled="saving">{{ saving ? 'Zapisywanie...' : 'Zapisz' }}</button>
+            <template v-if="!editing">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>VIN * (dokładnie 17 znaków)</label>
+                        <input v-model="form.vin" maxlength="17" placeholder="1HGBH41JXMN109186" style="font-family:monospace;text-transform:uppercase" />
+                        <small style="color:#9ca3af;font-size:0.75rem">Wpisano: {{ form.vin?.length ?? 0 }} / 17</small>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Stan licznika (km)</label>
+                        <input v-model.number="form.odometerReading" type="number" min="0" placeholder="0" />
+                    </div>
+                </div>
+            </template>
+
+            <div v-if="formError" class="error-msg">{{ formError }}</div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" @click="showForm = false">Anuluj</button>
+                <button class="btn btn-primary" @click="submitForm" :disabled="saving">{{ saving ? 'Zapisywanie...' : 'Zapisz' }}</button>
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- ── Calibrate odometer modal ── -->
@@ -136,10 +147,12 @@
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;font-size:0.85rem">
-          <div><span style="color:#9ca3af">VIN:</span> <code>{{ det?.vin }}</code></div>
-          <div><span style="color:#9ca3af">Rejestracja:</span> <strong>{{ det?.licensePlate }}</strong></div>
-          <div><span style="color:#9ca3af">Rok:</span> {{ det?.year }}</div>
-          <div><span style="color:#9ca3af">Licznik:</span> <strong>{{ det?.odometerReading?.toLocaleString('pl-PL') }} km</strong></div>
+            <div><span style="color:#9ca3af">VIN:</span> <code>{{ det?.vin }}</code></div>
+            <div><span style="color:#9ca3af">Rejestracja:</span> <strong>{{ det?.licensePlate }}</strong></div>
+            <div><span style="color:#9ca3af">Rok:</span> {{ det?.year }}</div>
+            <div><span style="color:#9ca3af">Licznik:</span> <strong>{{ det?.odometerReading?.toLocaleString('pl-PL') }} km</strong></div>
+            <div><span style="color:#9ca3af">Bak:</span> {{ det?.fuelTankCapacity }} L</div>
+            <div><span style="color:#9ca3af">Spalanie normatywne:</span> {{ det?.fuelConsumption }} L/100km</div>
         </div>
 
         <!-- Fuel stats -->
@@ -249,12 +262,14 @@ function fmtDate(d) { return new Date(d).toLocaleDateString('pl-PL') }
 /* ── Add / Edit ── */
 function openAdd() {
   editing.value = null
-  form.value = { brand: '', model: '', licensePlate: '', vin: '', odometerReading: 0 }
+    form.value = { brand: '', model: '', licensePlate: '', vin: '', odometerReading: 0, fuelTankCapacity: 50, fuelConsumption: 7.5  }
   formError.value = ''; showForm.value = true
 }
 function openEdit(v) {
   editing.value = v
-  form.value = { brand: v.brand, model: v.model, licensePlate: v.licensePlate, year: v.year, rowVersion: v.rowVersion }
+    form.value = {
+        brand: v.brand, model: v.model, licensePlate: v.licensePlate, year: v.year, rowVersion: v.rowVersion, fuelTankCapacity: v.fuelTankCapacity || 50,
+        fuelConsumption: v.fuelConsumption || 7.5 }
   formError.value = ''; showForm.value = true
 }
 async function submitForm() {
@@ -267,6 +282,8 @@ async function submitForm() {
         model: form.value.model,
         year: form.value.year,
         rowVersion: form.value.rowVersion,
+        fuelTankCapacity: form.value.fuelTankCapacity,
+        fuelConsumption: form.value.fuelConsumption
       })
     } else {
       await vehiclesApi.create({
@@ -275,6 +292,8 @@ async function submitForm() {
         brand: form.value.brand,
         model: form.value.model,
         odometerReading: form.value.odometerReading,
+        fuelTankCapacity: form.value.fuelTankCapacity,
+        fuelConsumption: form.value.fuelConsumption
       })
     }
     showForm.value = false
